@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.ceoeg.aetherflow.core.parser.UniversalParserRoundTripTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-17T22:23:49.275Z" hostname="Saleh" time="0.231">
+  <properties/>
+  <testcase name="parses Clash Mihomo YAML Subscription-Userinfo headers and client deep-links()" classname="com.ceoeg.aetherflow.core.parser.UniversalParserRoundTripTest" time="0.125"/>
+  <testcase name="round-trip AmneziaWG conf INI with Jc Jmin Jmax S1 S2 H1-H4 and Reserved bytes()" classname="com.ceoeg.aetherflow.core.parser.UniversalParserRoundTripTest" time="0.014"/>
+  <testcase name="round-trip VLESS REALITY with post-quantum mldsa65Verify and XTLS-Vision()" classname="com.ceoeg.aetherflow.core.parser.UniversalParserRoundTripTest" time="0.01"/>
+  <testcase name="round-trip VMess AEAD Trojan Shadowsocks-2022 Hysteria2 TUICv5 and AnyTLS()" classname="com.ceoeg.aetherflow.core.parser.UniversalParserRoundTripTest" time="0.042"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

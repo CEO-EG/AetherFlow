@@ -1,0 +1,3 @@
+lib/arm64-v8a/libhev-socks5-tunnel.so->Project
+lib/armeabi-v7a/libhev-socks5-tunnel.so->Project
+lib/x86_64/libhev-socks5-tunnel.so->Project

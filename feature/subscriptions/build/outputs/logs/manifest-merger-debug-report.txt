@@ -1,0 +1,16 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/saleh/AndroidStudioProjects/AetherFlow/feature/subscriptions/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest10785465797831976938.xml:2:13-83
+INJECTED from /home/saleh/AndroidStudioProjects/AetherFlow/feature/subscriptions/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest10785465797831976938.xml:2:13-83
+	package
+		INJECTED from /home/saleh/AndroidStudioProjects/AetherFlow/feature/subscriptions/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest10785465797831976938.xml
+	xmlns:android
+		ADDED from /home/saleh/AndroidStudioProjects/AetherFlow/feature/subscriptions/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest10785465797831976938.xml:2:23-81
+uses-sdk
+INJECTED from /home/saleh/AndroidStudioProjects/AetherFlow/feature/subscriptions/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest10785465797831976938.xml reason: use-sdk injection requested
+INJECTED from /home/saleh/AndroidStudioProjects/AetherFlow/feature/subscriptions/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest10785465797831976938.xml
+INJECTED from /home/saleh/AndroidStudioProjects/AetherFlow/feature/subscriptions/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest10785465797831976938.xml
+	android:targetSdkVersion
+		INJECTED from /home/saleh/AndroidStudioProjects/AetherFlow/feature/subscriptions/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest10785465797831976938.xml
+	android:minSdkVersion
+		INJECTED from /home/saleh/AndroidStudioProjects/AetherFlow/feature/subscriptions/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest10785465797831976938.xml

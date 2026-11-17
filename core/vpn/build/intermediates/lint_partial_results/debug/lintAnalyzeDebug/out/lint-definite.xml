@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 9.5.1" type="incidents">
+
+    <incident
+        id="ObsoleteSdkInt"
+        severity="warning"
+        message="Unnecessary; `SDK_INT` is always >= 24">
+        <fix-data conditional="true"/>
+        <location
+            file="${:core:vpn*debug*MAIN*sourceProvider*0*javaDir*2}/com/ceoeg/aetherflow/core/vpn/AetherVpnService.kt"
+            line="179"
+            column="29"
+            startOffset="6971"
+            endLine="179"
+            endColumn="86"
+            endOffset="7028"/>
+    </incident>
+
+</incidents>

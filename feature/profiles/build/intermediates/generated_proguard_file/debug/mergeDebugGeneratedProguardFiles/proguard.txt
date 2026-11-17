@@ -1,0 +1,2 @@
+-keep,allowobfuscation,allowshrinking class com.ceoeg.aetherflow.feature.profiles.ProfilesViewModel
+-keep,allowobfuscation,allowshrinking class com.ceoeg.aetherflow.feature.profiles.ProfilesViewModel

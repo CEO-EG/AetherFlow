@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.ceoeg.aetherflow.core.xray.XrayConfigBuilderTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-17T22:26:57.756Z" hostname="Saleh" time="0.634">
+  <properties/>
+  <testcase name="generates Xray v26 JSON with REALITY mldsa65Verify XHTTP xmux finalmask Fragment Noise FakeIP SplitDNS and ephemeral SOCKS5 auth()" classname="com.ceoeg.aetherflow.core.xray.XrayConfigBuilderTest" time="0.491"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

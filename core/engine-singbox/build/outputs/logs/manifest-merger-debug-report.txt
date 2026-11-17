@@ -1,0 +1,16 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/saleh/AndroidStudioProjects/AetherFlow/core/engine-singbox/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest78591986980746705.xml:2:13-83
+INJECTED from /home/saleh/AndroidStudioProjects/AetherFlow/core/engine-singbox/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest78591986980746705.xml:2:13-83
+	package
+		INJECTED from /home/saleh/AndroidStudioProjects/AetherFlow/core/engine-singbox/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest78591986980746705.xml
+	xmlns:android
+		ADDED from /home/saleh/AndroidStudioProjects/AetherFlow/core/engine-singbox/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest78591986980746705.xml:2:23-81
+uses-sdk
+INJECTED from /home/saleh/AndroidStudioProjects/AetherFlow/core/engine-singbox/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest78591986980746705.xml reason: use-sdk injection requested
+INJECTED from /home/saleh/AndroidStudioProjects/AetherFlow/core/engine-singbox/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest78591986980746705.xml
+INJECTED from /home/saleh/AndroidStudioProjects/AetherFlow/core/engine-singbox/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest78591986980746705.xml
+	android:targetSdkVersion
+		INJECTED from /home/saleh/AndroidStudioProjects/AetherFlow/core/engine-singbox/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest78591986980746705.xml
+	android:minSdkVersion
+		INJECTED from /home/saleh/AndroidStudioProjects/AetherFlow/core/engine-singbox/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest78591986980746705.xml

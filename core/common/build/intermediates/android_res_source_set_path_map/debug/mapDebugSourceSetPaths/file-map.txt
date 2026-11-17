@@ -1,0 +1,9 @@
+com.ceoeg.aetherflow.core.common-pngs-0 /home/saleh/AndroidStudioProjects/AetherFlow/core/common/build/generated/res/pngs/debug
+com.ceoeg.aetherflow.core.common-updated_navigation_xml-1 /home/saleh/AndroidStudioProjects/AetherFlow/core/common/build/generated/updated_navigation_xml/debug
+com.ceoeg.aetherflow.core.common-mergeDebugResources-2 /home/saleh/AndroidStudioProjects/AetherFlow/core/common/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
+com.ceoeg.aetherflow.core.common-mergeDebugResources-3 /home/saleh/AndroidStudioProjects/AetherFlow/core/common/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
+com.ceoeg.aetherflow.core.common-debug-4 /home/saleh/AndroidStudioProjects/AetherFlow/core/common/build/intermediates/merged_res/debug/mergeDebugResources
+com.ceoeg.aetherflow.core.common-debug-5 /home/saleh/AndroidStudioProjects/AetherFlow/core/common/build/intermediates/packaged_res/debug/packageDebugResources
+com.ceoeg.aetherflow.core.common-debug-6 /home/saleh/AndroidStudioProjects/AetherFlow/core/common/src/debug/res
+com.ceoeg.aetherflow.core.common-main-7 /home/saleh/AndroidStudioProjects/AetherFlow/core/common/src/main/res
+gradleHome-0 /home/saleh/.gradle

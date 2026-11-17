@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 9.5.1" type="incidents">
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX function `createBitmap` instead?">
+        <fix-replace
+            description="Replace with the createBitmap function"
+            family="Replace with the createBitmap function"
+            robot="true"
+            independent="true"
+            oldString="Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)"
+            replacement="createBitmap(width, height)"
+            reformat="value"
+            imports="androidx.core.graphics.createBitmap"
+            priority="0">
+            <range
+                file="${:core:routing*debug*MAIN*sourceProvider*0*javaDir*2}/com/ceoeg/aetherflow/core/routing/SplitTunnelAppManager.kt"
+                startOffset="3364"
+                endOffset="3423"/>
+        </fix-replace>
+        <location
+            file="${:core:routing*debug*MAIN*sourceProvider*0*javaDir*2}/com/ceoeg/aetherflow/core/routing/SplitTunnelAppManager.kt"
+            line="83"
+            column="26"
+            startOffset="3364"
+            endLine="83"
+            endColumn="85"
+            endOffset="3423"/>
+    </incident>
+
+</incidents>

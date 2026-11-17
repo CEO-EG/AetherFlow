@@ -1,0 +1,9 @@
+com.ceoeg.aetherflow.feature.dashboard-pngs-0 /home/saleh/AndroidStudioProjects/AetherFlow/feature/dashboard/build/generated/res/pngs/debug
+com.ceoeg.aetherflow.feature.dashboard-updated_navigation_xml-1 /home/saleh/AndroidStudioProjects/AetherFlow/feature/dashboard/build/generated/updated_navigation_xml/debug
+com.ceoeg.aetherflow.feature.dashboard-mergeDebugResources-2 /home/saleh/AndroidStudioProjects/AetherFlow/feature/dashboard/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
+com.ceoeg.aetherflow.feature.dashboard-mergeDebugResources-3 /home/saleh/AndroidStudioProjects/AetherFlow/feature/dashboard/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
+com.ceoeg.aetherflow.feature.dashboard-debug-4 /home/saleh/AndroidStudioProjects/AetherFlow/feature/dashboard/build/intermediates/merged_res/debug/mergeDebugResources
+com.ceoeg.aetherflow.feature.dashboard-debug-5 /home/saleh/AndroidStudioProjects/AetherFlow/feature/dashboard/build/intermediates/packaged_res/debug/packageDebugResources
+com.ceoeg.aetherflow.feature.dashboard-debug-6 /home/saleh/AndroidStudioProjects/AetherFlow/feature/dashboard/src/debug/res
+com.ceoeg.aetherflow.feature.dashboard-main-7 /home/saleh/AndroidStudioProjects/AetherFlow/feature/dashboard/src/main/res
+gradleHome-0 /home/saleh/.gradle

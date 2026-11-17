@@ -1,0 +1,9 @@
+com.ceoeg.aetherflow.core.vpn-pngs-0 /home/saleh/AndroidStudioProjects/AetherFlow/core/vpn/build/generated/res/pngs/debug
+com.ceoeg.aetherflow.core.vpn-updated_navigation_xml-1 /home/saleh/AndroidStudioProjects/AetherFlow/core/vpn/build/generated/updated_navigation_xml/debug
+com.ceoeg.aetherflow.core.vpn-mergeDebugResources-2 /home/saleh/AndroidStudioProjects/AetherFlow/core/vpn/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
+com.ceoeg.aetherflow.core.vpn-mergeDebugResources-3 /home/saleh/AndroidStudioProjects/AetherFlow/core/vpn/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
+com.ceoeg.aetherflow.core.vpn-debug-4 /home/saleh/AndroidStudioProjects/AetherFlow/core/vpn/build/intermediates/merged_res/debug/mergeDebugResources
+com.ceoeg.aetherflow.core.vpn-debug-5 /home/saleh/AndroidStudioProjects/AetherFlow/core/vpn/build/intermediates/packaged_res/debug/packageDebugResources
+com.ceoeg.aetherflow.core.vpn-debug-6 /home/saleh/AndroidStudioProjects/AetherFlow/core/vpn/src/debug/res
+com.ceoeg.aetherflow.core.vpn-main-7 /home/saleh/AndroidStudioProjects/AetherFlow/core/vpn/src/main/res
+gradleHome-0 /home/saleh/.gradle

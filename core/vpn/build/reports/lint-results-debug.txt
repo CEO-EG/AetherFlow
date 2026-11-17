@@ -1,0 +1,43 @@
+/home/saleh/.gradle/caches/9.6.0/transforms/ea244f0af455e723ea60f2b4b6c86aa1/transformed/lifecycle-runtime-release/jars/lint.jar: Warning: Library lint checks reference invalid APIs; these checks will be skipped!
+
+Lint found an issue registry (androidx.lifecycle.lint.LifecycleRuntimeIssueRegistry)
+which contains some references to invalid API:
+org.jetbrains.kotlin.asJava.elements.KtLightModifierList#getKotlinOrigin(): org.jetbrains.kotlin.psi.KtModifierList
+(Referenced from androidx/lifecycle/lint/LifecycleWhenChecksKt.class)
+
+Therefore, this lint check library is not included
+in analysis. This affects the following lint checks:
+UnsafeLifecycleWhenUsage,RepeatOnLifecycleWrongUsage
+
+To use this lint check, upgrade to a more recent version
+of the library. [ObsoleteLintCustomCheck]
+
+   Explanation for issues of type "ObsoleteLintCustomCheck":
+   Lint can be extended with "custom checks": additional checks implemented by
+   developers and libraries to for example enforce specific API usages
+   required by a library or a company coding style guideline.
+
+   The Lint APIs are not yet stable, so these checks may either cause a
+   performance degradation, or stop working, or provide wrong results.
+
+   This warning flags custom lint checks that are found to be using obsolete
+   APIs and will need to be updated to run in the current lint environment.
+
+   It may also flag issues found to be using a newer version of the API,
+   meaning that you need to use a newer version of lint (or Android Studio or
+   Gradle plugin etc) to work with these checks.
+
+/home/saleh/AndroidStudioProjects/AetherFlow/core/vpn/src/main/kotlin/com/ceoeg/aetherflow/core/vpn/AetherVpnService.kt:179: Warning: Unnecessary; SDK_INT is always >= 24 [ObsoleteSdkInt]
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "ObsoleteSdkInt":
+   This check flags version checks that are not necessary, because the
+   minSdkVersion (or surrounding known API level) is already at least as high
+   as the version checked for.
+
+   Similarly, it also looks for resources in -vNN folders, such as values-v14
+   where the version qualifier is less than or equal to the minSdkVersion,
+   where the contents should be merged into the best folder.
+
+0 errors, 2 warnings

@@ -1,0 +1,1 @@
+-keep,includedescriptorclasses class com.ceoeg.aetherflow.core.common.**$$serializer { *; }

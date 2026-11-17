@@ -1,0 +1,135 @@
+{
+    "$schema" : "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+    "version" : "2.1.0",
+    "runs" : [
+        {
+            "tool": {
+                "driver": {
+                    "name": "Android Lint",
+                    "fullName": "Android Lint (in gradle)",
+                    "version": "9.5.1",
+                    "semanticVersion": "9.5.1",
+                    "organization": "Google",
+                    "informationUri": "https://developer.android.com/studio/write/lint",
+                    "fullDescription": {
+                        "text": "Static analysis originally for Android source code but now performing general analysis"
+                    },
+                    "language": "en-US",
+                    "rules": [
+                        {
+                            "id": "ObsoleteLintCustomCheck",
+                            "shortDescription": {
+                                "text": "Obsolete custom lint check"
+                            },
+                            "fullDescription": {
+                                "text": "Lint can be extended with \"custom checks\": additional checks implemented by developers and libraries to for example enforce specific API usages required by a library or a company coding style guideline.\n\nThe Lint APIs are not yet stable, so these checks may either cause a performance degradation, or stop working, or provide wrong results.\n\nThis warning flags custom lint checks that are found to be using obsolete APIs and will need to be updated to run in the current lint environment.\n\nIt may also flag issues found to be using a newer version of the API, meaning that you need to use a newer version of lint (or Android Studio or Gradle plugin etc) to work with these checks.",
+                                "markdown": "Lint can be extended with \"custom checks\": additional checks implemented by developers and libraries to for example enforce specific API usages required by a library or a company coding style guideline.\n\nThe Lint APIs are not yet stable, so these checks may either cause a performance degradation, or stop working, or provide wrong results.\n\nThis warning flags custom lint checks that are found to be using obsolete APIs and will need to be updated to run in the current lint environment.\n\nIt may also flag issues found to be using a **newer** version of the API, meaning that you need to use a newer version of lint (or Android Studio or Gradle plugin etc) to work with these checks."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning",
+                                "rank": 10
+                            },
+                            "properties": {
+                                "tags": [
+                                    "Lint"
+                                ]
+                            }
+                        },
+                        {
+                            "id": "ObsoleteSdkInt",
+                            "shortDescription": {
+                                "text": "Obsolete SDK_INT Version Check"
+                            },
+                            "fullDescription": {
+                                "text": "This check flags version checks that are not necessary, because the minSdkVersion (or surrounding known API level) is already at least as high as the version checked for.\n\nSimilarly, it also looks for resources in -vNN folders, such as values-v14 where the version qualifier is less than or equal to the minSdkVersion, where the contents should be merged into the best folder.",
+                                "markdown": "This check flags version checks that are not necessary, because the `minSdkVersion` (or surrounding known API level) is already at least as high as the version checked for.\n\nSimilarly, it also looks for resources in `-vNN` folders, such as `values-v14` where the version qualifier is less than or equal to the `minSdkVersion`, where the contents should be merged into the best folder."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning",
+                                "rank": 50
+                            },
+                            "properties": {
+                                "tags": [
+                                    "Performance"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "originalUriBaseIds": {
+                "%SRCROOT%": {
+                    "uri": "file:///home/saleh/AndroidStudioProjects/AetherFlow/"
+                },
+                "USER_HOME": {
+                    "uri": "file:///home/saleh/AndroidStudioProjects/AetherFlow/"
+                }
+            },
+            "results": [
+                {
+                    "ruleId": "ObsoleteLintCustomCheck",
+                    "ruleIndex": 0,
+                    "message": {
+                        "text": "Library lint checks reference invalid APIs; these checks will be skipped!\n\nLint found an issue registry (androidx.lifecycle.lint.LifecycleRuntimeIssueRegistry)\nwhich contains some references to invalid API:\norg.jetbrains.kotlin.asJava.elements.KtLightModifierList#getKotlinOrigin(): org.jetbrains.kotlin.psi.KtModifierList\n(Referenced from androidx/lifecycle/lint/LifecycleWhenChecksKt.class)\n\nTherefore, this lint check library is not included\nin analysis. This affects the following lint checks:\nUnsafeLifecycleWhenUsage,RepeatOnLifecycleWrongUsage\n\nTo use this lint check, upgrade to a more recent version\nof the library.",
+                        "markdown": "Library lint checks reference invalid APIs; these checks **will be skipped**!\n\nLint found an issue registry (`androidx.lifecycle.lint.LifecycleRuntimeIssueRegistry`)\nwhich contains some references to invalid API:\norg.jetbrains.kotlin.asJava.elements.KtLightModifierList#getKotlinOrigin(): org.jetbrains.kotlin.psi.KtModifierList\n(Referenced from androidx/lifecycle/lint/LifecycleWhenChecksKt.class)\n\nTherefore, this lint check library is **not** included\nin analysis. This affects the following lint checks:\n`UnsafeLifecycleWhenUsage`,`RepeatOnLifecycleWrongUsage`\n\nTo use this lint check, upgrade to a more recent version\nof the library."
+                    },
+                    "locations": [
+                        {
+                            "physicalLocation": {
+                                "artifactLocation": {
+                                    "uriBaseId": "USER_HOME",
+                                    "uri": ".gradle/caches/9.6.0/transforms/ea244f0af455e723ea60f2b4b6c86aa1/transformed/lifecycle-runtime-release/jars/lint.jar"
+                                },
+                                "region": {
+                                    "byteOffset": 0
+                                }                            }
+                        }
+                    ],
+                    "partialFingerprints": {
+                    }
+                },
+                {
+                    "ruleId": "ObsoleteSdkInt",
+                    "ruleIndex": 1,
+                    "message": {
+                        "text": "Unnecessary; SDK_INT is always >= 24",
+                        "markdown": "Unnecessary; `SDK_INT` is always >= 24"
+                    },
+                    "locations": [
+                        {
+                            "physicalLocation": {
+                                "artifactLocation": {
+                                    "uriBaseId": "%SRCROOT%",
+                                    "uri": "core/vpn/src/main/kotlin/com/ceoeg/aetherflow/core/vpn/AetherVpnService.kt"
+                                },
+                                "region": {
+                                    "startLine": 179,
+                                    "startColumn": 29,
+                                    "endLine": 179,
+                                    "endColumn": 86,
+                                    "charOffset": 6971,
+                                    "charLength": 57,
+                                    "snippet": {
+                                        "text": "Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1"
+                                    }
+                                },
+                                "contextRegion": {
+                                    "startLine": 177,
+                                    "endLine": 182,
+                                    "snippet": {
+                                        "text": "                    .collect { transport ->\n                        if (transport == PhysicalTransportType.NONE) return@collect\n                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {\n                            runCatching { setUnderlyingNetworks(null) }\n                        }\n"
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "fixes": [
+                    ],
+                    "partialFingerprints": {
+                        "sourceContext/v1": "f01a408610301b39"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,2 @@
+-keep,allowobfuscation,allowshrinking class com.ceoeg.aetherflow.feature.routing.RoutingViewModel
+-keep,allowobfuscation,allowshrinking class com.ceoeg.aetherflow.feature.routing.RoutingViewModel

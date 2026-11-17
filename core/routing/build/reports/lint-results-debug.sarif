@@ -1,0 +1,219 @@
+{
+    "$schema" : "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+    "version" : "2.1.0",
+    "runs" : [
+        {
+            "tool": {
+                "driver": {
+                    "name": "Android Lint",
+                    "fullName": "Android Lint (in gradle)",
+                    "version": "9.5.1",
+                    "semanticVersion": "9.5.1",
+                    "organization": "Google",
+                    "informationUri": "https://developer.android.com/studio/write/lint",
+                    "fullDescription": {
+                        "text": "Static analysis originally for Android source code but now performing general analysis"
+                    },
+                    "language": "en-US",
+                    "rules": [
+                        {
+                            "id": "ObsoleteLintCustomCheck",
+                            "shortDescription": {
+                                "text": "Obsolete custom lint check"
+                            },
+                            "fullDescription": {
+                                "text": "Lint can be extended with \"custom checks\": additional checks implemented by developers and libraries to for example enforce specific API usages required by a library or a company coding style guideline.\n\nThe Lint APIs are not yet stable, so these checks may either cause a performance degradation, or stop working, or provide wrong results.\n\nThis warning flags custom lint checks that are found to be using obsolete APIs and will need to be updated to run in the current lint environment.\n\nIt may also flag issues found to be using a newer version of the API, meaning that you need to use a newer version of lint (or Android Studio or Gradle plugin etc) to work with these checks.",
+                                "markdown": "Lint can be extended with \"custom checks\": additional checks implemented by developers and libraries to for example enforce specific API usages required by a library or a company coding style guideline.\n\nThe Lint APIs are not yet stable, so these checks may either cause a performance degradation, or stop working, or provide wrong results.\n\nThis warning flags custom lint checks that are found to be using obsolete APIs and will need to be updated to run in the current lint environment.\n\nIt may also flag issues found to be using a **newer** version of the API, meaning that you need to use a newer version of lint (or Android Studio or Gradle plugin etc) to work with these checks."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning",
+                                "rank": 10
+                            },
+                            "properties": {
+                                "tags": [
+                                    "Lint"
+                                ]
+                            }
+                        },
+                        {
+                            "id": "QueryPermissionsNeeded",
+                            "shortDescription": {
+                                "text": "Using APIs affected by query permissions"
+                            },
+                            "fullDescription": {
+                                "text": "Apps that target Android 11 cannot query or interact with other installed apps by default. If you need to query or interact with other installed apps, you may need to add a <queries> declaration in your manifest.\n\nAs a corollary, the methods PackageManager#getInstalledPackages and PackageManager#getInstalledApplications will no longer return information about all installed apps. To query specific apps or types of apps, you can use methods like PackageManager#getPackageInfo or PackageManager#queryIntentActivities.",
+                                "markdown": "Apps that target Android 11 cannot query or interact with other installed apps by default. If you need to query or interact with other installed apps, you may need to add a `<queries>` declaration in your manifest.\n\nAs a corollary, the methods `PackageManager#getInstalledPackages` and `PackageManager#getInstalledApplications` will no longer return information about all installed apps. To query specific apps or types of apps, you can use methods like `PackageManager#getPackageInfo` or `PackageManager#queryIntentActivities`."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning",
+                                "rank": 60
+                            },
+                            "properties": {
+                                "tags": [
+                                    "Correctness"
+                                ]
+                            }
+                        },
+                        {
+                            "id": "UseKtx",
+                            "shortDescription": {
+                                "text": "Use KTX extension function"
+                            },
+                            "fullDescription": {
+                                "text": "The Android KTX libraries decorates the Android platform SDK as well as various libraries with more convenient extension functions available from Kotlin, allowing you to use default parameters, named parameters, and more."
+                            },
+                            "defaultConfiguration": {
+                                "level": "warning",
+                                "rank": 50
+                            },
+                            "properties": {
+                                "tags": [
+                                    "Productivity"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "originalUriBaseIds": {
+                "%SRCROOT%": {
+                    "uri": "file:///home/saleh/AndroidStudioProjects/AetherFlow/"
+                },
+                "USER_HOME": {
+                    "uri": "file:///home/saleh/AndroidStudioProjects/AetherFlow/"
+                }
+            },
+            "results": [
+                {
+                    "ruleId": "ObsoleteLintCustomCheck",
+                    "ruleIndex": 0,
+                    "message": {
+                        "text": "Library lint checks reference invalid APIs; these checks will be skipped!\n\nLint found an issue registry (androidx.lifecycle.lint.LifecycleRuntimeIssueRegistry)\nwhich contains some references to invalid API:\norg.jetbrains.kotlin.asJava.elements.KtLightModifierList#getKotlinOrigin(): org.jetbrains.kotlin.psi.KtModifierList\n(Referenced from androidx/lifecycle/lint/LifecycleWhenChecksKt.class)\n\nTherefore, this lint check library is not included\nin analysis. This affects the following lint checks:\nUnsafeLifecycleWhenUsage,RepeatOnLifecycleWrongUsage\n\nTo use this lint check, upgrade to a more recent version\nof the library.",
+                        "markdown": "Library lint checks reference invalid APIs; these checks **will be skipped**!\n\nLint found an issue registry (`androidx.lifecycle.lint.LifecycleRuntimeIssueRegistry`)\nwhich contains some references to invalid API:\norg.jetbrains.kotlin.asJava.elements.KtLightModifierList#getKotlinOrigin(): org.jetbrains.kotlin.psi.KtModifierList\n(Referenced from androidx/lifecycle/lint/LifecycleWhenChecksKt.class)\n\nTherefore, this lint check library is **not** included\nin analysis. This affects the following lint checks:\n`UnsafeLifecycleWhenUsage`,`RepeatOnLifecycleWrongUsage`\n\nTo use this lint check, upgrade to a more recent version\nof the library."
+                    },
+                    "locations": [
+                        {
+                            "physicalLocation": {
+                                "artifactLocation": {
+                                    "uriBaseId": "USER_HOME",
+                                    "uri": ".gradle/caches/9.6.0/transforms/ea244f0af455e723ea60f2b4b6c86aa1/transformed/lifecycle-runtime-release/jars/lint.jar"
+                                },
+                                "region": {
+                                    "byteOffset": 0
+                                }                            }
+                        }
+                    ],
+                    "partialFingerprints": {
+                    }
+                },
+                {
+                    "ruleId": "QueryPermissionsNeeded",
+                    "ruleIndex": 1,
+                    "message": {
+                        "text": "As of Android 11, this method no longer returns information about all apps; see https://g.co/dev/packagevisibility for details"
+                    },
+                    "locations": [
+                        {
+                            "physicalLocation": {
+                                "artifactLocation": {
+                                    "uriBaseId": "%SRCROOT%",
+                                    "uri": "core/routing/src/main/kotlin/com/ceoeg/aetherflow/core/routing/SplitTunnelAppManager.kt"
+                                },
+                                "region": {
+                                    "startLine": 53,
+                                    "startColumn": 24,
+                                    "endLine": 53,
+                                    "endColumn": 48,
+                                    "charOffset": 1770,
+                                    "charLength": 24,
+                                    "snippet": {
+                                        "text": "getInstalledApplications"
+                                    }
+                                },
+                                "contextRegion": {
+                                    "startLine": 51,
+                                    "endLine": 56,
+                                    "snippet": {
+                                        "text": "                val selfPkg = context.packageName\n                val apps = runCatching {\n                    pm.getInstalledApplications(PackageManager.GET_META_DATA)\n                        .asSequence()\n                        .filter { it.packageName != selfPkg }\n"
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "partialFingerprints": {
+                        "sourceContext/v1": "c1c1a6d793f6ca56"
+                    }
+                },
+                {
+                    "ruleId": "UseKtx",
+                    "ruleIndex": 2,
+                    "message": {
+                        "text": "Use the KTX function createBitmap instead?",
+                        "markdown": "Use the KTX function `createBitmap` instead?"
+                    },
+                    "locations": [
+                        {
+                            "physicalLocation": {
+                                "artifactLocation": {
+                                    "uriBaseId": "%SRCROOT%",
+                                    "uri": "core/routing/src/main/kotlin/com/ceoeg/aetherflow/core/routing/SplitTunnelAppManager.kt"
+                                },
+                                "region": {
+                                    "startLine": 83,
+                                    "startColumn": 26,
+                                    "endLine": 83,
+                                    "endColumn": 85,
+                                    "charOffset": 3364,
+                                    "charLength": 59,
+                                    "snippet": {
+                                        "text": "Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)"
+                                    }
+                                },
+                                "contextRegion": {
+                                    "startLine": 81,
+                                    "endLine": 86,
+                                    "snippet": {
+                                        "text": "            val width = drawable.intrinsicWidth.coerceIn(48, 144)\n            val height = drawable.intrinsicHeight.coerceIn(48, 144)\n            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)\n            val canvas = Canvas(bitmap)\n            drawable.setBounds(0, 0, canvas.width, canvas.height)\n"
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "fixes": [
+                        {
+                            "description": {
+                                "text": "Replace with the createBitmap function"
+                            },
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uriBaseId": "%SRCROOT%",
+                                        "uri": "core/routing/src/main/kotlin/com/ceoeg/aetherflow/core/routing/SplitTunnelAppManager.kt"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "startLine": 83,
+                                                "startColumn": 26,
+                                                "charOffset": 3364,
+                                                "endLine": 83,
+                                                "endColumn": 85,
+                                                "charLength": 59
+                                            },
+                                            "insertedContent": {
+                                                "text": "createBitmap(width, height)"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "partialFingerprints": {
+                        "sourceContext/v1": "c4f1e8b14872490a"
+                    }
+                }
+            ]
+        }
+    ]
+}

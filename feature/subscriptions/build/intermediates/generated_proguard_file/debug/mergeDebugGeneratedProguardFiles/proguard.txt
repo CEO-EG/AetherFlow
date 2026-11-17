@@ -1,0 +1,2 @@
+-keep,allowobfuscation,allowshrinking class com.ceoeg.aetherflow.feature.subscriptions.SubscriptionsViewModel
+-keep,allowobfuscation,allowshrinking class com.ceoeg.aetherflow.feature.subscriptions.SubscriptionsViewModel

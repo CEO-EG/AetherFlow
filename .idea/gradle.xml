@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleMigrationSettings" migrationVersion="1" />
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <option name="testRunner" value="CHOOSE_PER_TEST" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/core" />
+            <option value="$PROJECT_DIR$/core/common" />
+            <option value="$PROJECT_DIR$/core/engine-singbox" />
+            <option value="$PROJECT_DIR$/core/engine-wireguard" />
+            <option value="$PROJECT_DIR$/core/engine-xray" />
+            <option value="$PROJECT_DIR$/core/parser" />
+            <option value="$PROJECT_DIR$/core/routing" />
+            <option value="$PROJECT_DIR$/core/tun" />
+            <option value="$PROJECT_DIR$/core/vpn" />
+            <option value="$PROJECT_DIR$/feature" />
+            <option value="$PROJECT_DIR$/feature/dashboard" />
+            <option value="$PROJECT_DIR$/feature/diagnostics" />
+            <option value="$PROJECT_DIR$/feature/profiles" />
+            <option value="$PROJECT_DIR$/feature/routing" />
+            <option value="$PROJECT_DIR$/feature/settings" />
+            <option value="$PROJECT_DIR$/feature/subscriptions" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+    </option>
+  </component>
+</project>
