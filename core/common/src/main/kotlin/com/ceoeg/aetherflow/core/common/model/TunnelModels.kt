@@ -113,7 +113,10 @@ data class TlsRealityConfig(
     val mldsa65Verify: String = "",
     /** Encrypted Client Hello (ECH) config list (Base64 or DNS record). */
     val echConfigList: String = "",
+    /** Peer X.509 certificate SHA-256 fingerprint(s) (`pcs` / `pinnedPeerCertSha256` in Xray v26+). */
     val pinnedPeerCertSha256: String = "",
+    /** Comma-separated certificate SAN/CN verification override (`vcn` / `verifyPeerCertByName` in Xray v26+). */
+    val verifyPeerCertByName: String = "",
 )
 
 @Serializable

@@ -1,10 +1,10 @@
 <libraries>
   <library
       name=":@@:core:vpn::debug"
-      jars="/home/saleh/.gradle/caches/9.6.0/transforms/669c79f6af3fd438640c13d8fe9d4b1f/transformed/out/jars/classes.jar:/home/saleh/.gradle/caches/9.6.0/transforms/669c79f6af3fd438640c13d8fe9d4b1f/transformed/out/jars/libs/R.jar"
+      jars="/home/saleh/.gradle/caches/9.6.0/transforms/dcae168ca836fdae3114d77002b82a7e/transformed/out/jars/classes.jar:/home/saleh/.gradle/caches/9.6.0/transforms/dcae168ca836fdae3114d77002b82a7e/transformed/out/jars/libs/R.jar"
       resolved="AetherFlow.core:vpn:unspecified"
       partialResultsDir="/home/saleh/AndroidStudioProjects/AetherFlow/core/vpn/build/intermediates/lint_partial_results/debug/lintAnalyzeDebug/out"
-      folder="/home/saleh/.gradle/caches/9.6.0/transforms/669c79f6af3fd438640c13d8fe9d4b1f/transformed/out"
+      folder="/home/saleh/.gradle/caches/9.6.0/transforms/dcae168ca836fdae3114d77002b82a7e/transformed/out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -15,10 +15,10 @@
       proguardRules="proguard.txt"/>
   <library
       name=":@@:core:parser::debug"
-      jars="/home/saleh/.gradle/caches/9.6.0/transforms/b4956e67a64b6072d8ba826088d5669c/transformed/out/jars/classes.jar:/home/saleh/.gradle/caches/9.6.0/transforms/b4956e67a64b6072d8ba826088d5669c/transformed/out/jars/libs/R.jar"
+      jars="/home/saleh/.gradle/caches/9.6.0/transforms/57df6e61b7ef780a43249cf832d9e754/transformed/out/jars/classes.jar:/home/saleh/.gradle/caches/9.6.0/transforms/57df6e61b7ef780a43249cf832d9e754/transformed/out/jars/libs/R.jar"
       resolved="AetherFlow.core:parser:unspecified"
       partialResultsDir="/home/saleh/AndroidStudioProjects/AetherFlow/core/parser/build/intermediates/lint_partial_results/debug/lintAnalyzeDebug/out"
-      folder="/home/saleh/.gradle/caches/9.6.0/transforms/b4956e67a64b6072d8ba826088d5669c/transformed/out"
+      folder="/home/saleh/.gradle/caches/9.6.0/transforms/57df6e61b7ef780a43249cf832d9e754/transformed/out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -43,10 +43,10 @@
       proguardRules="proguard.txt"/>
   <library
       name=":@@:core:engine-xray::debug"
-      jars="/home/saleh/.gradle/caches/9.6.0/transforms/a46859bad14ddeb8f39ccabd46b6f5bd/transformed/out/jars/classes.jar:/home/saleh/.gradle/caches/9.6.0/transforms/a46859bad14ddeb8f39ccabd46b6f5bd/transformed/out/jars/libs/R.jar"
+      jars="/home/saleh/.gradle/caches/9.6.0/transforms/3b81870335d228db91d4df0716c8378f/transformed/out/jars/classes.jar:/home/saleh/.gradle/caches/9.6.0/transforms/3b81870335d228db91d4df0716c8378f/transformed/out/jars/libs/R.jar"
       resolved="AetherFlow.core:engine-xray:unspecified"
       partialResultsDir="/home/saleh/AndroidStudioProjects/AetherFlow/core/engine-xray/build/intermediates/lint_partial_results/debug/lintAnalyzeDebug/out"
-      folder="/home/saleh/.gradle/caches/9.6.0/transforms/a46859bad14ddeb8f39ccabd46b6f5bd/transformed/out"
+      folder="/home/saleh/.gradle/caches/9.6.0/transforms/3b81870335d228db91d4df0716c8378f/transformed/out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -99,10 +99,10 @@
       proguardRules="proguard.txt"/>
   <library
       name=":@@:core:common::debug"
-      jars="/home/saleh/.gradle/caches/9.6.0/transforms/9798dd7fc044b3bc12fbbf94a852b426/transformed/out/jars/classes.jar:/home/saleh/.gradle/caches/9.6.0/transforms/9798dd7fc044b3bc12fbbf94a852b426/transformed/out/jars/libs/R.jar"
+      jars="/home/saleh/.gradle/caches/9.6.0/transforms/e257b99565de6ab20bafc3bfb32572dc/transformed/out/jars/classes.jar:/home/saleh/.gradle/caches/9.6.0/transforms/e257b99565de6ab20bafc3bfb32572dc/transformed/out/jars/libs/R.jar"
       resolved="AetherFlow.core:common:unspecified"
       partialResultsDir="/home/saleh/AndroidStudioProjects/AetherFlow/core/common/build/intermediates/lint_partial_results/debug/lintAnalyzeDebug/out"
-      folder="/home/saleh/.gradle/caches/9.6.0/transforms/9798dd7fc044b3bc12fbbf94a852b426/transformed/out"
+      folder="/home/saleh/.gradle/caches/9.6.0/transforms/e257b99565de6ab20bafc3bfb32572dc/transformed/out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"

@@ -60,6 +60,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -89,6 +90,7 @@ import com.ceoeg.aetherflow.core.common.model.SubscriptionFeed
 import com.ceoeg.aetherflow.core.common.model.TransportType
 import com.ceoeg.aetherflow.core.common.model.TunnelProfile
 import com.ceoeg.aetherflow.core.common.security.EncryptedSettingsStore
+import com.ceoeg.aetherflow.core.common.security.TlsCertificatePinResolver
 import com.ceoeg.aetherflow.core.parser.ClashAndJsonBundleCodec
 import com.ceoeg.aetherflow.core.parser.ConfigValidationResult
 import com.ceoeg.aetherflow.core.parser.ShareUriCodec
@@ -598,6 +600,11 @@ private fun ProfileItemCard(
                     if (profile.tlsReality.mldsa65Verify.isNotBlank()) {
                         ProtocolBadge("PQ-MLDSA65", accentColor = AetherPalette.WarningAmber)
                     }
+                    if (profile.tlsReality.security == SecurityMode.TLS &&
+                        (profile.tlsReality.allowInsecure || profile.tlsReality.pinnedPeerCertSha256.isNotBlank())
+                    ) {
+                        ProtocolBadge("SNI-PIN", accentColor = AetherPalette.WarningAmber)
+                    }
                     if (detourName != null) {
                         ProtocolBadge("→ $detourName", accentColor = AetherPalette.WarningAmber)
                     }
@@ -644,6 +651,12 @@ private fun ProfileDualModeEditorDialog(
     }
     var sni by remember { mutableStateOf(initialProfile.tlsReality.sni) }
     var security by remember { mutableStateOf(initialProfile.tlsReality.security) }
+    var allowInsecure by remember { mutableStateOf(initialProfile.tlsReality.allowInsecure) }
+    var pinnedCertSha256 by remember { mutableStateOf(initialProfile.tlsReality.pinnedPeerCertSha256) }
+    var verifyCertByName by remember { mutableStateOf(initialProfile.tlsReality.verifyPeerCertByName) }
+    var isFetchingPin by remember { mutableStateOf(false) }
+    var pinStatusMsg by remember { mutableStateOf<String?>(null) }
+    val dialogScope = rememberCoroutineScope()
     var transport by remember { mutableStateOf(initialProfile.transport.type) }
     var path by remember { mutableStateOf(initialProfile.transport.path) }
     var realityPubKey by remember { mutableStateOf(initialProfile.tlsReality.realityPublicKey) }
@@ -797,6 +810,99 @@ private fun ProfileDualModeEditorDialog(
                             }
                         }
 
+                        if (security == SecurityMode.TLS) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Allow Custom SNI / Self-Signed Cert",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                    Text(
+                                        text = "Auto-pins server SHA-256 (pcs) & vcn on Xray v26+",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                                Spacer(Modifier.width(8.dp))
+                                Switch(
+                                    checked = allowInsecure,
+                                    onCheckedChange = { allowInsecure = it },
+                                )
+                            }
+
+                            OutlinedTextField(
+                                value = verifyCertByName,
+                                onValueChange = { verifyCertByName = it },
+                                label = { Text("Verify Cert Hostname (vcn)", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                placeholder = { Text(host.ifBlank { "e.g. vless-eg.duckdns.org" }, maxLines = 1) },
+                                singleLine = true,
+                                textStyle = AetherMonoTypography.codeSmall,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+
+                            OutlinedTextField(
+                                value = pinnedCertSha256,
+                                onValueChange = { pinnedCertSha256 = it },
+                                label = { Text("Pinned Server Cert SHA-256 (pcs)", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                placeholder = { Text("Auto-resolved on connect or tap Fetch below", maxLines = 1) },
+                                singleLine = true,
+                                textStyle = AetherMonoTypography.codeSmall,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+
+                            OutlinedButton(
+                                enabled = !isFetchingPin && host.isNotBlank(),
+                                onClick = {
+                                    isFetchingPin = true
+                                    pinStatusMsg = null
+                                    dialogScope.launch {
+                                        val res = TlsCertificatePinResolver.fetchServerCertPin(
+                                            host = host,
+                                            port = port.toIntOrNull() ?: 443,
+                                            sni = sni,
+                                        )
+                                        isFetchingPin = false
+                                        res.onSuccess { info ->
+                                            pinnedCertSha256 = info.sha256Hex
+                                            if (info.isCaCert && verifyCertByName.isBlank() && info.certNames.isNotEmpty()) {
+                                                verifyCertByName = info.certNames.joinToString(",")
+                                            }
+                                            pinStatusMsg = "Pinned SHA-256: ${info.sha256Hex.take(16)}..."
+                                        }.onFailure { err ->
+                                            pinStatusMsg = "Probe failed: ${err.message}"
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(
+                                    text = if (isFetchingPin) "Probing TLS Handshake..." else "Fetch Server Cert SHA-256",
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+
+                            pinStatusMsg?.let { status ->
+                                Text(
+                                    text = status,
+                                    style = AetherMonoTypography.codeSmall,
+                                    color = if (status.startsWith("Pinned")) {
+                                        AetherPalette.EmeraldSignal
+                                    } else {
+                                        AetherPalette.AlertCrimson
+                                    },
+                                )
+                            }
+                        }
+
                         if (security == SecurityMode.REALITY) {
                             OutlinedTextField(
                                 value = realityPubKey,
@@ -942,8 +1048,11 @@ private fun ProfileDualModeEditorDialog(
                                 tlsReality = initialProfile.tlsReality.copy(
                                     security = security,
                                     sni = sni.trim(),
+                                    allowInsecure = allowInsecure,
                                     realityPublicKey = realityPubKey.trim(),
                                     mldsa65Verify = mldsa65Verify.trim(),
+                                    pinnedPeerCertSha256 = pinnedCertSha256.trim(),
+                                    verifyPeerCertByName = verifyCertByName.trim(),
                                 ),
                                 wireGuard = initialProfile.wireGuard.copy(
                                     privateKey = if (isWg) uuidOrPass.trim() else initialProfile.wireGuard.privateKey,

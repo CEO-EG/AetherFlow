@@ -47,7 +47,11 @@ class XrayConfigBuilder @Inject constructor(
         detourExitProfile: TunnelProfile? = null,
     ): String {
         if (profile.protocol == ProtocolType.CUSTOM_JSON && profile.rawCustomConfig.isNotBlank()) {
-            return profile.rawCustomConfig
+            // Strip removed legacy `"allowInsecure": true` so imported raw Xray JSON configs run on Xray v26.6+
+            return profile.rawCustomConfig.replace(
+                Regex(""""allowInsecure"\s*:\s*true"""),
+                """"allowInsecure": false""",
+            )
         }
 
         val plan = routingCompiler.compile(settings, customRules)
@@ -479,7 +483,8 @@ class XrayConfigBuilder @Inject constructor(
         when (tls.security) {
             SecurityMode.TLS -> putJsonObject("tlsSettings") {
                 put("serverName", tls.sni.ifBlank { profile.serverAddress })
-                put("allowInsecure", tls.allowInsecure)
+                // Xray-core v26.6+ removed `allowInsecure` and migrated to `pinnedPeerCertSha256` (pcs)
+                // and `verifyPeerCertByName` (vcn). Never emit `allowInsecure: true`.
                 put("fingerprint", tls.fingerprint.wireValue)
                 if (tls.alpn.isNotEmpty()) {
                     putJsonArray("alpn") { tls.alpn.forEach { add(JsonPrimitive(it)) } }
@@ -489,6 +494,17 @@ class XrayConfigBuilder @Inject constructor(
                 }
                 if (tls.pinnedPeerCertSha256.isNotBlank()) {
                     put("pinnedPeerCertSha256", tls.pinnedPeerCertSha256)
+                }
+                val effectiveVerifyName = when {
+                    tls.verifyPeerCertByName.isNotBlank() -> tls.verifyPeerCertByName
+                    tls.allowInsecure &&
+                        tls.pinnedPeerCertSha256.isBlank() &&
+                        tls.sni.isNotBlank() &&
+                        !tls.sni.equals(profile.serverAddress, ignoreCase = true) -> profile.serverAddress
+                    else -> ""
+                }
+                if (effectiveVerifyName.isNotBlank()) {
+                    put("verifyPeerCertByName", effectiveVerifyName)
                 }
             }
 

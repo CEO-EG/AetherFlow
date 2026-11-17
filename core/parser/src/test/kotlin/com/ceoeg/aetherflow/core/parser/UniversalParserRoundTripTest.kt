@@ -265,4 +265,34 @@ class UniversalParserRoundTripTest {
         assertEquals("EnterpriseFeed", discovered.name)
         assertEquals("https://sub.aether.example/api/v1", discovered.url)
     }
+
+    @Test
+    fun `parses and round-trips VLESS TLS URI with custom SNI allowInsecure pcs and vcn`() {
+        val rawSalehUri =
+            "vless://eb82c67b-227e-4f53-a941-485f2cd2caa1@vless-eg.duckdns.org:443?alpn=h2%2Chttp%2F1.1&encryption=none&fp=chrome&security=tls&sni=partners.playstation.net&type=tcp&allowInsecure=1#vless-tcp-saleh"
+
+        val parsed = ShareUriCodec.parseUri(rawSalehUri)
+        assertNotNull(parsed)
+        parsed!!
+        assertEquals("vless-tcp-saleh", parsed.name)
+        assertEquals(ProtocolType.VLESS, parsed.protocol)
+        assertEquals("vless-eg.duckdns.org", parsed.serverAddress)
+        assertEquals(443, parsed.serverPort)
+        assertEquals("eb82c67b-227e-4f53-a941-485f2cd2caa1", parsed.uuid)
+        assertEquals(SecurityMode.TLS, parsed.tlsReality.security)
+        assertEquals("partners.playstation.net", parsed.tlsReality.sni)
+        assertEquals(listOf("h2", "http/1.1"), parsed.tlsReality.alpn)
+        assertTrue(parsed.tlsReality.allowInsecure)
+
+        val withPinAndVcn = parsed.copy(
+            tlsReality = parsed.tlsReality.copy(
+                pinnedPeerCertSha256 = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+                verifyPeerCertByName = "vless-eg.duckdns.org",
+            )
+        )
+        val reserialized = ShareUriCodec.serializeToUri(withPinAndVcn)
+        val reparsed = ShareUriCodec.parseUri(reserialized)!!
+        assertEquals(withPinAndVcn.tlsReality.pinnedPeerCertSha256, reparsed.tlsReality.pinnedPeerCertSha256)
+        assertEquals(withPinAndVcn.tlsReality.verifyPeerCertByName, reparsed.tlsReality.verifyPeerCertByName)
+    }
 }

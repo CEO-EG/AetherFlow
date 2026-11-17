@@ -3,6 +3,7 @@ package com.ceoeg.aetherflow.core.vpn
 import com.ceoeg.aetherflow.core.common.model.AppSettings
 import com.ceoeg.aetherflow.core.common.model.SessionLoopbackAuth
 import com.ceoeg.aetherflow.core.common.model.TunnelProfile
+import com.ceoeg.aetherflow.core.common.security.TlsCertificatePinResolver
 import com.ceoeg.aetherflow.core.xray.XrayConfigBuilder
 import com.ceoeg.aetherflow.core.xray.XrayNativeBridge
 import dagger.Binds
@@ -79,8 +80,9 @@ class DefaultEndpointProber @Inject constructor(
     ): NodeProbeResult = withContext(Dispatchers.IO) {
         val tcpMs = measureTcpHandshake(profile.serverAddress, profile.serverPort, 3000)
         val urlDelay = if (xrayBridge.isNativeAvailable && profile.resolvedEngine().name == "XRAY") {
+            val resolvedProfile = TlsCertificatePinResolver.resolveProfileIfNeeded(profile)
             val dummyAuth = SessionLoopbackAuth(49100, 49101, 49102, "probe", "probe", "probe")
-            val cfg = xrayConfigBuilder.buildConfig(profile, settings, dummyAuth)
+            val cfg = xrayConfigBuilder.buildConfig(resolvedProfile, settings, dummyAuth)
             xrayBridge.measureStandaloneConfigDelay(cfg, settings.latencyTestUrl)
         } else {
             tcpMs

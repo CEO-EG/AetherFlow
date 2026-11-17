@@ -1,9 +1,9 @@
 <libraries>
   <library
       name=":@@:core:engine-xray::debug"
-      jars="/home/saleh/.gradle/caches/9.6.0/transforms/a46859bad14ddeb8f39ccabd46b6f5bd/transformed/out/jars/classes.jar:/home/saleh/.gradle/caches/9.6.0/transforms/a46859bad14ddeb8f39ccabd46b6f5bd/transformed/out/jars/libs/R.jar"
+      jars="/home/saleh/.gradle/caches/9.6.0/transforms/3b81870335d228db91d4df0716c8378f/transformed/out/jars/classes.jar:/home/saleh/.gradle/caches/9.6.0/transforms/3b81870335d228db91d4df0716c8378f/transformed/out/jars/libs/R.jar"
       resolved="AetherFlow.core:engine-xray:unspecified"
-      folder="/home/saleh/.gradle/caches/9.6.0/transforms/a46859bad14ddeb8f39ccabd46b6f5bd/transformed/out"
+      folder="/home/saleh/.gradle/caches/9.6.0/transforms/3b81870335d228db91d4df0716c8378f/transformed/out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -27,9 +27,9 @@
       proguardRules="proguard.txt"/>
   <library
       name=":@@:core:common::debug"
-      jars="/home/saleh/.gradle/caches/9.6.0/transforms/9798dd7fc044b3bc12fbbf94a852b426/transformed/out/jars/classes.jar:/home/saleh/.gradle/caches/9.6.0/transforms/9798dd7fc044b3bc12fbbf94a852b426/transformed/out/jars/libs/R.jar"
+      jars="/home/saleh/.gradle/caches/9.6.0/transforms/e257b99565de6ab20bafc3bfb32572dc/transformed/out/jars/classes.jar:/home/saleh/.gradle/caches/9.6.0/transforms/e257b99565de6ab20bafc3bfb32572dc/transformed/out/jars/libs/R.jar"
       resolved="AetherFlow.core:common:unspecified"
-      folder="/home/saleh/.gradle/caches/9.6.0/transforms/9798dd7fc044b3bc12fbbf94a852b426/transformed/out"
+      folder="/home/saleh/.gradle/caches/9.6.0/transforms/e257b99565de6ab20bafc3bfb32572dc/transformed/out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"

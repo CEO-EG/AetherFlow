@@ -211,7 +211,8 @@ object ShareUriCodec {
         val fp = UtlsFingerprint.entries.firstOrNull { it.wireValue == fpStr } ?: UtlsFingerprint.CHROME
         val alpn = (q["alpn"] ?: "").split(',').map { it.trim() }.filter { it.isNotEmpty() }
         val insecure = q["allowInsecure"] == "1" || q["allowInsecure"] == "true" ||
-            q["insecure"] == "1" || q["insecure"] == "true"
+            q["insecure"] == "1" || q["insecure"] == "true" ||
+            q["allow_insecure"] == "1" || q["allow_insecure"] == "true"
 
         return TlsRealityConfig(
             security = sec,
@@ -224,7 +225,8 @@ object ShareUriCodec {
             realitySpiderX = q["spx"] ?: q["spiderX"] ?: "/",
             mldsa65Verify = q["pqv"] ?: q["mldsa65Verify"] ?: "",
             echConfigList = q["ech"] ?: "",
-            pinnedPeerCertSha256 = q["pcs"] ?: q["pinned_certchain_sha256"] ?: "",
+            pinnedPeerCertSha256 = q["pcs"] ?: q["pinnedPeerCertSha256"] ?: q["pinned_certchain_sha256"] ?: "",
+            verifyPeerCertByName = q["vcn"] ?: q["verifyPeerCertByName"] ?: "",
         )
     }
 
@@ -255,6 +257,8 @@ object ShareUriCodec {
         if (p.tlsReality.alpn.isNotEmpty()) params["alpn"] = p.tlsReality.alpn.joinToString(",")
         params["fp"] = p.tlsReality.fingerprint.wireValue
         if (p.tlsReality.allowInsecure) params["allowInsecure"] = "1"
+        if (p.tlsReality.pinnedPeerCertSha256.isNotBlank()) params["pcs"] = p.tlsReality.pinnedPeerCertSha256
+        if (p.tlsReality.verifyPeerCertByName.isNotBlank()) params["vcn"] = p.tlsReality.verifyPeerCertByName
         if (p.tlsReality.security == SecurityMode.REALITY) {
             if (p.tlsReality.realityPublicKey.isNotBlank()) params["pbk"] = p.tlsReality.realityPublicKey
             if (p.tlsReality.realityShortId.isNotBlank()) params["sid"] = p.tlsReality.realityShortId
@@ -400,6 +404,8 @@ object ShareUriCodec {
         if (p.tlsReality.alpn.isNotEmpty()) params["alpn"] = p.tlsReality.alpn.joinToString(",")
         params["fp"] = p.tlsReality.fingerprint.wireValue
         if (p.tlsReality.allowInsecure) params["allowInsecure"] = "1"
+        if (p.tlsReality.pinnedPeerCertSha256.isNotBlank()) params["pcs"] = p.tlsReality.pinnedPeerCertSha256
+        if (p.tlsReality.verifyPeerCertByName.isNotBlank()) params["vcn"] = p.tlsReality.verifyPeerCertByName
         if (p.tlsReality.security == SecurityMode.REALITY) {
             if (p.tlsReality.realityPublicKey.isNotBlank()) params["pbk"] = p.tlsReality.realityPublicKey
             if (p.tlsReality.realityShortId.isNotBlank()) params["sid"] = p.tlsReality.realityShortId

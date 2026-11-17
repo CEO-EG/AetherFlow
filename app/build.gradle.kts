@@ -17,17 +17,25 @@ android {
         versionCode = 100
         versionName = "1.0.0"
 
-        ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
-        }
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    // Generate slim per-ABI APKs (~36 MB debug / ~24 MB release with 1 Go binary) instead of
+    // packing arm64-v8a + armeabi-v7a + x86_64 libgojni.so copies (~69+ MB) into one fat APK.
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a", "x86_64")
+            isUniversalApk = true
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

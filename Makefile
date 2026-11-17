@@ -7,8 +7,9 @@ GRADLEW := ./gradlew
 ADB     ?= adb
 PKG     := com.ceoeg.aetherflow
 MAIN    := $(PKG)/.MainActivity
-APK_DBG := app/build/outputs/apk/debug/app-debug.apk
-APK_REL := app/build/outputs/apk/release/app-release-unsigned.apk
+APK_DBG_ARM64 := app/build/outputs/apk/debug/app-arm64-v8a-debug.apk
+APK_DBG_UNIV  := app/build/outputs/apk/debug/app-universal-debug.apk
+APK_REL_ARM64 := app/build/outputs/apk/release/app-arm64-v8a-release.apk
 
 .DEFAULT_GOAL := help
 
@@ -51,15 +52,16 @@ test: ## Run all JUnit 5 unit tests across all modules
 lint: ## Run Android Lint static analysis across all modules
 	$(GRADLEW) lintDebug
 
-apk: debug ## Build debug APK with verified native cores
+apk: debug ## Build per-ABI & universal debug APKs with verified native cores
 
-debug: ## Fetch native cores and assemble debug APK
+debug: ## Fetch native cores and assemble slim per-ABI + universal debug APKs
 	$(GRADLEW) downloadNativeCores verifyNativeCores assembleDebug
-	@printf "\n\033[1;32m[OK]\033[0m Debug APK ready: $(APK_DBG)\n"
+	@printf "\n\033[1;32m[OK]\033[0m Slim ARM64 Debug APK ready: $(APK_DBG_ARM64)\n"
+	@printf "\033[1;32m[OK]\033[0m Universal Debug APK ready:  $(APK_DBG_UNIV)\n"
 
-release: ## Fetch native cores and assemble R8-minified release APK
+release: ## Fetch native cores and assemble R8-minified ~22 MB per-ABI release APKs
 	$(GRADLEW) downloadNativeCores verifyNativeCores assembleRelease
-	@printf "\n\033[1;32m[OK]\033[0m Release APK ready: $(APK_REL)\n"
+	@printf "\n\033[1;32m[OK]\033[0m Slim 22 MB ARM64 Release APK ready: $(APK_REL_ARM64)\n"
 
 check: ## Full CI verification (fetch/verify cores + JUnit 5 tests + Lint + Debug APK)
 	$(GRADLEW) downloadNativeCores verifyNativeCores testDebugUnitTest lintDebug assembleDebug

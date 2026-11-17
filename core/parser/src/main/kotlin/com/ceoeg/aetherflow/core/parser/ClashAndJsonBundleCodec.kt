@@ -585,9 +585,12 @@ object ClashAndJsonBundleCodec {
             },
             sni = reality?.get("serverName")?.jsonPrimitive?.contentOrNull
                 ?: tls?.get("serverName")?.jsonPrimitive?.contentOrNull ?: "",
+            allowInsecure = tls?.get("allowInsecure")?.jsonPrimitive?.booleanOrNull == true,
             realityPublicKey = reality?.get("publicKey")?.jsonPrimitive?.contentOrNull ?: "",
             realityShortId = reality?.get("shortId")?.jsonPrimitive?.contentOrNull ?: "",
             mldsa65Verify = reality?.get("mldsa65Verify")?.jsonPrimitive?.contentOrNull ?: "",
+            pinnedPeerCertSha256 = tls?.get("pinnedPeerCertSha256")?.jsonPrimitive?.contentOrNull ?: "",
+            verifyPeerCertByName = tls?.get("verifyPeerCertByName")?.jsonPrimitive?.contentOrNull ?: "",
         )
 
         val vnext = (settings["vnext"] as? JsonArray)?.firstOrNull() as? JsonObject

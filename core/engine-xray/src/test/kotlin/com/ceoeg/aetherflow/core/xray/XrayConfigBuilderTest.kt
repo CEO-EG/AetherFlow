@@ -162,4 +162,52 @@ class XrayConfigBuilderTest {
         assertTrue(routingStr.contains("3478"))
         assertTrue(routingStr.contains("github.com"))
     }
+
+    @Test
+    fun `migrates legacy allowInsecure with custom SNI to Xray v26 pcs and vcn without emitting allowInsecure`() {
+        val sessionAuth = authGenerator.generateSessionAuth()
+        val settings = AppSettings()
+
+        // Unpinned custom SNI + allowInsecure=1 fallback (e.g., offline before TLS pin probe)
+        val unpinnedCustomSniProfile = TunnelProfile(
+            name = "vless-tcp-saleh",
+            protocol = ProtocolType.VLESS,
+            serverAddress = "vless-eg.duckdns.org",
+            serverPort = 443,
+            uuid = "eb82c67b-227e-4f53-a941-485f2cd2caa1",
+            method = "none",
+            transport = TransportSettings(type = TransportType.RAW_TCP),
+            tlsReality = TlsRealityConfig(
+                security = SecurityMode.TLS,
+                sni = "partners.playstation.net",
+                alpn = listOf("h2", "http/1.1"),
+                allowInsecure = true,
+            ),
+        )
+
+        val unpinnedJson = builder.buildConfig(unpinnedCustomSniProfile, settings, sessionAuth)
+        org.junit.jupiter.api.Assertions.assertFalse(
+            unpinnedJson.contains("allowInsecure"),
+            "Xray v26.6+ rejects allowInsecure; it must never be emitted in tlsSettings",
+        )
+        val unpinnedRoot = json.parseToJsonElement(unpinnedJson).jsonObject
+        val unpinnedTls = unpinnedRoot["outbounds"]!!.jsonArray
+            .first().jsonObject["streamSettings"]!!.jsonObject["tlsSettings"]!!.jsonObject
+        assertEquals("partners.playstation.net", unpinnedTls["serverName"]?.jsonPrimitive?.content)
+        assertEquals("vless-eg.duckdns.org", unpinnedTls["verifyPeerCertByName"]?.jsonPrimitive?.content)
+
+        // Auto-pinned leaf SHA-256 (`pcs`) mode
+        val sampleSha256 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        val pinnedProfile = unpinnedCustomSniProfile.copy(
+            tlsReality = unpinnedCustomSniProfile.tlsReality.copy(
+                pinnedPeerCertSha256 = sampleSha256,
+            )
+        )
+        val pinnedJson = builder.buildConfig(pinnedProfile, settings, sessionAuth)
+        org.junit.jupiter.api.Assertions.assertFalse(pinnedJson.contains("allowInsecure"))
+        val pinnedTls = json.parseToJsonElement(pinnedJson).jsonObject["outbounds"]!!.jsonArray
+            .first().jsonObject["streamSettings"]!!.jsonObject["tlsSettings"]!!.jsonObject
+        assertEquals("partners.playstation.net", pinnedTls["serverName"]?.jsonPrimitive?.content)
+        assertEquals(sampleSha256, pinnedTls["pinnedPeerCertSha256"]?.jsonPrimitive?.content)
+    }
 }

@@ -18,6 +18,7 @@ import com.ceoeg.aetherflow.core.common.model.TunnelProfile
 import com.ceoeg.aetherflow.core.common.model.VpnConnectionState
 import com.ceoeg.aetherflow.core.common.security.EncryptedSettingsStore
 import com.ceoeg.aetherflow.core.common.security.EphemeralLoopbackAuthGenerator
+import com.ceoeg.aetherflow.core.common.security.TlsCertificatePinResolver
 import com.ceoeg.aetherflow.core.singbox.ClashApiInspectorClient
 import com.ceoeg.aetherflow.core.singbox.SingBoxConfigBuilder
 import com.ceoeg.aetherflow.core.singbox.SingBoxEngineController
@@ -342,12 +343,25 @@ class UnifiedEngineOrchestrator @Inject constructor(
 
         when (engine) {
             EngineBackend.XRAY -> {
+                val resolvedProfile = TlsCertificatePinResolver.resolveProfileIfNeeded(profile)
+                val resolvedDetour = detourExit?.let { TlsCertificatePinResolver.resolveProfileIfNeeded(it) }
+                if (resolvedProfile != profile) {
+                    logger.info(
+                        "Orchestrator",
+                        "Auto-pinned peer TLS SHA-256 (pcs) for '${resolvedProfile.name}' (Xray v26+ SNI/cert mode)"
+                    )
+                    scope.launch { repository.upsertProfile(resolvedProfile) }
+                }
+                if (resolvedDetour != null && resolvedDetour != detourExit) {
+                    scope.launch { repository.upsertProfile(resolvedDetour) }
+                }
+
                 val cfg = xrayConfigBuilder.buildConfig(
-                    profile = profile,
+                    profile = resolvedProfile,
                     settings = settings,
                     sessionAuth = sessionAuth,
                     customRules = customRules,
-                    detourExitProfile = detourExit,
+                    detourExitProfile = resolvedDetour,
                 )
                 val coreFd = if (effectiveTunMode == TunBackendMode.CORE_NATIVE_TUN) tunFd else 0
                 xrayController.start(cfg, coreFd)

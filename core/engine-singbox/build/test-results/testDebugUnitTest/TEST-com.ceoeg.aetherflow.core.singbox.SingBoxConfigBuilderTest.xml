@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.ceoeg.aetherflow.core.singbox.SingBoxConfigBuilderTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-17T22:23:49.285Z" hostname="Saleh" time="0.346">
+<testsuite name="com.ceoeg.aetherflow.core.singbox.SingBoxConfigBuilderTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-17T23:17:21.704Z" hostname="Saleh" time="0.717">
   <properties/>
-  <testcase name="generates Sing-box JSON for Hysteria2 ShadowTLSv3 AnyTLSv2 FakeIP SplitDNS and authenticated Clash API()" classname="com.ceoeg.aetherflow.core.singbox.SingBoxConfigBuilderTest" time="0.075"/>
-  <testcase name="ClashApiInspectorClient parses live connections snapshot accurately()" classname="com.ceoeg.aetherflow.core.singbox.SingBoxConfigBuilderTest" time="0.007"/>
+  <testcase name="generates Sing-box JSON for Hysteria2 ShadowTLSv3 AnyTLSv2 FakeIP SplitDNS and authenticated Clash API()" classname="com.ceoeg.aetherflow.core.singbox.SingBoxConfigBuilderTest" time="0.229"/>
+  <testcase name="ClashApiInspectorClient parses live connections snapshot accurately()" classname="com.ceoeg.aetherflow.core.singbox.SingBoxConfigBuilderTest" time="0.01"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
