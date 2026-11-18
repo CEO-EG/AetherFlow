@@ -1,0 +1,82 @@
+name: AetherFlow GitHub Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release tag (e.g. v1.0.0)"
+        required: true
+        default: "v1.0.0"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish-release:
+    name: Build Signed Release APKs & Publish GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Restore Release Keystore (Optional GitHub Secrets)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > "${RUNNER_TEMP}/release.jks"
+            echo "SIGNING_STORE_FILE=${RUNNER_TEMP}/release.jks" >> "$GITHUB_ENV"
+            echo "SIGNING_STORE_PASSWORD=${STORE_PASSWORD}" >> "$GITHUB_ENV"
+            echo "SIGNING_KEY_ALIAS=${KEY_ALIAS}" >> "$GITHUB_ENV"
+            echo "SIGNING_KEY_PASSWORD=${KEY_PASSWORD}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Download & Verify Native Core Checksums
+        run: ./gradlew downloadNativeCores verifyNativeCores
+
+      - name: Run Unit Tests & Assemble Minified Release APKs
+        run: ./gradlew testDebugUnitTest assembleRelease --stacktrace
+
+      - name: Package Versioned Release Assets & SHA-256 Checksums
+        id: package
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.tag_name }}"
+          fi
+          mkdir -p release-assets
+          for abi in arm64-v8a armeabi-v7a x86_64 universal; do
+            src=$(ls app/build/outputs/apk/release/*-${abi}-release*.apk 2>/dev/null | head -n 1 || true)
+            if [ -n "$src" ] && [ -f "$src" ]; then
+              cp "$src" "release-assets/AetherFlow-${VERSION}-${abi}.apk"
+            fi
+          done
+          cd release-assets
+          sha256sum *.apk > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          name: "AetherFlow ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}"
+          generate_release_notes: true
+          body_path: CHANGELOG.md
+          files: |
+            release-assets/*.apk
+            release-assets/SHA256SUMS.txt

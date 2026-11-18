@@ -5,8 +5,9 @@ build/
 **/build/
 out/
 
-# Local SDK & environment configuration
+# Local SDK, signing & environment configuration
 local.properties
+keystore.properties
 
 # IDE & Editor metadata
 *.iml
