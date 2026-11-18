@@ -1,0 +1,17 @@
+# Normalize line endings across platforms
+* text=auto eol=lf
+*.bat text eol=crlf
+
+# Binary assets
+*.png binary
+*.webp binary
+*.jar binary
+*.aar binary
+*.so binary
+
+# GitHub Linguist classification rules (forces full-tree language recalculation)
+gradlew linguist-vendored=true
+gradlew.bat linguist-vendored=true
+gradle/wrapper/** linguist-vendored=true
+docs/** linguist-documentation=true
+**/build/** linguist-generated=true

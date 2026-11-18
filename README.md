@@ -3,7 +3,7 @@
   <h1>AetherFlow</h1>
   <p><strong>Enterprise Multi-Core Android VPN &amp; Universal Network Tunnel Client</strong></p>
   <p>
-    <img src="https://img.shields.io/badge/Kotlin-2.1+-22D3EE?style=flat-square" alt="Kotlin" />
+    <img src="https://img.shields.io/badge/Kotlin-100%25_(2.1+)-22D3EE?style=flat-square" alt="100% Kotlin" />
     <img src="https://img.shields.io/badge/Android_SDK-24--36_(Android_16)-10B981?style=flat-square" alt="Android SDK 24-36" />
     <img src="https://img.shields.io/badge/Jetpack_Compose-Material_3-38BDF8?style=flat-square" alt="Jetpack Compose" />
     <img src="https://img.shields.io/badge/Engines-Xray_v26_%7C_Sing--box_%7C_AmneziaWG-F59E0B?style=flat-square" alt="Multi-Core" />
