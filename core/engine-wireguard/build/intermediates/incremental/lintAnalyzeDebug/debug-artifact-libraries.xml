@@ -1,10 +1,10 @@
 <libraries>
   <library
       name=":@@:core:common::debug"
-      jars="/home/saleh/.gradle/caches/9.6.0/transforms/e257b99565de6ab20bafc3bfb32572dc/transformed/out/jars/classes.jar:/home/saleh/.gradle/caches/9.6.0/transforms/e257b99565de6ab20bafc3bfb32572dc/transformed/out/jars/libs/R.jar"
+      jars="/home/saleh/.gradle/caches/9.6.0/transforms/d203739a33cbf033b7e910068a1da1a8/transformed/out/jars/classes.jar:/home/saleh/.gradle/caches/9.6.0/transforms/d203739a33cbf033b7e910068a1da1a8/transformed/out/jars/libs/R.jar"
       resolved="AetherFlow.core:common:unspecified"
       partialResultsDir="/home/saleh/AndroidStudioProjects/AetherFlow/core/common/build/intermediates/lint_partial_results/debug/lintAnalyzeDebug/out"
-      folder="/home/saleh/.gradle/caches/9.6.0/transforms/e257b99565de6ab20bafc3bfb32572dc/transformed/out"
+      folder="/home/saleh/.gradle/caches/9.6.0/transforms/d203739a33cbf033b7e910068a1da1a8/transformed/out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"

@@ -26,21 +26,26 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Cable
+import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.DeleteSweep
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Terminal
+import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material.icons.outlined.WifiTethering
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,7 +53,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -67,7 +71,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import com.ceoeg.aetherflow.core.common.design.AetherActionChip
+import com.ceoeg.aetherflow.core.common.design.AetherFilterChip
 import com.ceoeg.aetherflow.core.common.design.AetherMonoTypography
+import com.ceoeg.aetherflow.core.common.design.AetherOptionSwitchRow
 import com.ceoeg.aetherflow.core.common.design.AetherPalette
 import com.ceoeg.aetherflow.core.common.design.ProtocolBadge
 import com.ceoeg.aetherflow.core.common.design.formatBytesHuman
@@ -214,25 +221,43 @@ fun DiagnosticsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Connection Inspector", "Log Console", "LAN Tethering")
+    val tabs = listOf(
+        "Connection Inspector" to Icons.Outlined.Cable,
+        "Log Console" to Icons.Outlined.Terminal,
+        "LAN Tethering" to Icons.Outlined.WifiTethering,
+    )
 
     Column(modifier = Modifier.fillMaxSize()) {
         ScrollableTabRow(
             selectedTabIndex = selectedTab,
             containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary,
             edgePadding = 16.dp,
         ) {
-            tabs.forEachIndexed { index, title ->
+            tabs.forEachIndexed { index, (title, tabIcon) ->
+                val isSelected = selectedTab == index
                 Tab(
-                    selected = selectedTab == index,
+                    selected = isSelected,
                     onClick = { selectedTab = index },
+                    selectedContentColor = MaterialTheme.colorScheme.primary,
+                    unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     text = {
-                        Text(
-                            text = title,
-                            maxLines = 1,
-                            softWrap = false,
-                            fontWeight = if (selectedTab == index) FontWeight.SemiBold else FontWeight.Normal,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Icon(
+                                imageVector = tabIcon,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                text = title,
+                                maxLines = 1,
+                                softWrap = false,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                            )
+                        }
                     },
                 )
             }
@@ -291,7 +316,7 @@ private fun ConnectionInspectorTab(
                         Icon(
                             imageVector = Icons.Outlined.Cable,
                             contentDescription = null,
-                            tint = AetherPalette.TelemetryCyan,
+                            tint = AetherPalette.AetherCyan,
                             modifier = Modifier.size(20.dp),
                         )
                         Spacer(Modifier.width(8.dp))
@@ -338,13 +363,21 @@ private fun ConnectionInspectorTab(
                                 overflow = TextOverflow.Ellipsis,
                             )
                         },
-                        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                     )
                     if (state.activeConnections.isNotEmpty()) {
                         OutlinedButton(
                             onClick = viewModel::terminateAllSockets,
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                contentColor = MaterialTheme.colorScheme.error,
+                            ),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.55f)),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                         ) {
+                            Icon(Icons.Outlined.Cancel, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(5.dp))
                             Text("Close All", maxLines = 1, softWrap = false)
                         }
                     }
@@ -394,7 +427,7 @@ private fun ConnectionInspectorTab(
                                 ) {
                                     ProtocolBadge(
                                         text = conn.network,
-                                        accentColor = if (conn.network == "UDP") AetherPalette.WarningAmber else AetherPalette.TelemetryCyan,
+                                        accentColor = if (conn.network == "UDP") AetherPalette.WarningAmber else AetherPalette.AetherCyan,
                                     )
                                     ProtocolBadge(
                                         text = conn.outboundChain.joinToString(" → "),
@@ -491,7 +524,7 @@ private fun StructuredLogConsoleTab(
                     overflow = TextOverflow.Ellipsis,
                 )
             },
-            leadingIcon = { Icon(Icons.Outlined.Terminal, contentDescription = null) },
+            leadingIcon = { Icon(Icons.Outlined.Terminal, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         )
 
         Row(
@@ -501,45 +534,54 @@ private fun StructuredLogConsoleTab(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            AssistChip(
+            AetherActionChip(
                 onClick = {
                     val text = viewModel.buildExportLogPayload(severityFilter, keyword, redactSensitive)
                     val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
                     cm?.setPrimaryClip(ClipData.newPlainText("AetherFlow Logs", text))
                 },
-                leadingIcon = { Icon(Icons.Outlined.ContentCopy, null, Modifier.size(16.dp)) },
-                label = { Text("Copy") },
+                label = "Copy",
+                icon = Icons.Outlined.ContentCopy,
+                iconTint = AetherPalette.AetherCyan,
             )
-            AssistChip(
+            AetherActionChip(
                 onClick = { exportLauncher.launch("aetherflow-diagnostics.log") },
-                leadingIcon = { Icon(Icons.Outlined.SaveAlt, null, Modifier.size(16.dp)) },
-                label = { Text("Export") },
+                label = "Export",
+                icon = Icons.Outlined.SaveAlt,
+                iconTint = AetherPalette.EmeraldSignal,
             )
-            AssistChip(
+            AetherActionChip(
                 onClick = viewModel::clearLogs,
-                leadingIcon = { Icon(Icons.Outlined.DeleteSweep, null, Modifier.size(16.dp)) },
-                label = { Text("Clear") },
+                label = "Clear",
+                icon = Icons.Outlined.DeleteSweep,
+                iconTint = AetherPalette.WarningAmber,
             )
-            FilterChip(
+            AetherFilterChip(
                 selected = redactSensitive,
                 onClick = {
                     val next = !redactSensitive
                     redactSensitive = next
                     viewModel.updateLogPreferences(redactByDefault = next)
                 },
-                leadingIcon = {
-                    Icon(Icons.Outlined.Shield, contentDescription = null, modifier = Modifier.size(16.dp))
-                },
-                label = { Text(if (redactSensitive) "Redaction ON" else "Unredacted") },
+                label = if (redactSensitive) "Redaction ON" else "Unredacted",
+                icon = Icons.Outlined.Shield,
+                accentColor = AetherPalette.EmeraldSignal,
             )
-            listOf(LogSeverity.ERROR, LogSeverity.WARNING, LogSeverity.INFO, LogSeverity.DEBUG).forEach { sev ->
-                FilterChip(
+            listOf(
+                Triple(LogSeverity.ERROR, Icons.Outlined.ErrorOutline, AetherPalette.AlertCrimson),
+                Triple(LogSeverity.WARNING, Icons.Outlined.WarningAmber, AetherPalette.WarningAmber),
+                Triple(LogSeverity.INFO, Icons.Outlined.Info, AetherPalette.EmeraldSignal),
+                Triple(LogSeverity.DEBUG, Icons.Outlined.BugReport, AetherPalette.AetherCyan),
+            ).forEach { (sev, sevIcon, sevAccent) ->
+                AetherFilterChip(
                     selected = severityFilter == sev,
                     onClick = {
                         severityFilter = sev
                         viewModel.updateLogPreferences(severity = sev)
                     },
-                    label = { Text(sev.wireLevel.uppercase()) },
+                    label = sev.wireLevel.uppercase(),
+                    icon = sevIcon,
+                    accentColor = sevAccent,
                 )
             }
         }
@@ -576,7 +618,7 @@ private fun StructuredLogConsoleTab(
                             LogSeverity.ERROR -> AetherPalette.AlertCrimson
                             LogSeverity.WARNING -> AetherPalette.WarningAmber
                             LogSeverity.INFO -> AetherPalette.EmeraldSignal
-                            LogSeverity.DEBUG, LogSeverity.NONE -> AetherPalette.TelemetryCyan
+                            LogSeverity.DEBUG, LogSeverity.NONE -> AetherPalette.AetherCyan
                         }
                         val displayMsg = if (redactSensitive) {
                             DiagnosticLogger.redactSensitiveData(entry.message)
@@ -622,37 +664,18 @@ private fun LanTetheringTab(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                        Icon(
-                            imageVector = Icons.Outlined.WifiTethering,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("LAN / Hotspot Proxy Share", style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                "Share the encrypted VPN tunnel with laptops, consoles, or secondary devices over Wi-Fi Hotspot / USB Tethering",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                    Spacer(Modifier.width(8.dp))
-                    Switch(
-                        checked = lan.enabled,
-                        onCheckedChange = { enabled ->
-                            viewModel.updateLanTethering { it.copy(enabled = enabled) }
-                        },
-                    )
-                }
+                AetherOptionSwitchRow(
+                    title = "LAN / Hotspot Proxy Share",
+                    subtitle = "Share the encrypted VPN tunnel with laptops, consoles, or secondary devices over Wi-Fi Hotspot / USB Tethering",
+                    checked = lan.enabled,
+                    onCheckedChange = { enabled ->
+                        viewModel.updateLanTethering { it.copy(enabled = enabled) }
+                    },
+                    icon = Icons.Outlined.WifiTethering,
+                    iconTint = AetherPalette.AetherCyan,
+                )
 
-                HorizontalDivider()
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(
@@ -683,25 +706,14 @@ private fun LanTetheringTab(
                     )
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Require LAN Client Credentials", style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            "Prevents unauthorized peers on shared Wi-Fi networks from relaying traffic",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Spacer(Modifier.width(8.dp))
-                    Switch(
-                        checked = lan.requireAuth,
-                        onCheckedChange = { req -> viewModel.updateLanTethering { it.copy(requireAuth = req) } },
-                    )
-                }
+                AetherOptionSwitchRow(
+                    title = "Require LAN Client Credentials",
+                    subtitle = "Prevents unauthorized peers on shared Wi-Fi networks from relaying traffic",
+                    checked = lan.requireAuth,
+                    onCheckedChange = { req -> viewModel.updateLanTethering { it.copy(requireAuth = req) } },
+                    icon = Icons.Outlined.Lock,
+                    iconTint = AetherPalette.EmeraldSignal,
+                )
 
                 if (lan.requireAuth) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -722,16 +734,11 @@ private fun LanTetheringTab(
                             modifier = Modifier.weight(1f),
                         )
                     }
-                    AssistChip(
+                    AetherActionChip(
                         onClick = viewModel::generateRandomLanPassword,
-                        leadingIcon = { Icon(Icons.Outlined.Key, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                        label = {
-                            Text(
-                                text = "Generate Strong 16-Char Password",
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        },
+                        label = "Generate Strong 16-Char Password",
+                        icon = Icons.Outlined.Key,
+                        iconTint = AetherPalette.WarningAmber,
                     )
                 }
             }
@@ -739,7 +746,7 @@ private fun LanTetheringTab(
 
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, AetherPalette.TelemetryCyan.copy(alpha = 0.45f)),
+            border = BorderStroke(1.dp, AetherPalette.AetherCyan.copy(alpha = 0.50f)),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -781,11 +788,12 @@ private fun LanTetheringTab(
                             val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
                             cm?.setPrimaryClip(ClipData.newPlainText("LAN Proxy Config", summaryBlock))
                         },
+                        shape = RoundedCornerShape(10.dp),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                     ) {
                         Icon(Icons.Outlined.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Copy", maxLines = 1, softWrap = false)
+                        Text("Copy", fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
                     }
                 }
                 Text(

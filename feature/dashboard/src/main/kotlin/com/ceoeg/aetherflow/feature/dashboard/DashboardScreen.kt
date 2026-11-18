@@ -29,12 +29,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Speed
-import androidx.compose.material3.AssistChip
+import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -60,6 +62,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -74,6 +77,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.ceoeg.aetherflow.core.common.database.TunnelRepository
+import com.ceoeg.aetherflow.core.common.design.AetherActionChip
 import com.ceoeg.aetherflow.core.common.design.AetherMonoTypography
 import com.ceoeg.aetherflow.core.common.design.AetherPalette
 import com.ceoeg.aetherflow.core.common.design.ProtocolBadge
@@ -233,22 +237,38 @@ fun DashboardScreen(
             onPingRefresh = viewModel::refreshLatency,
         )
 
-        // Segmented Routing Mode Selector (compact, single-line fit across all phone widths)
+        // Segmented Routing Mode Selector (compact, single-line fit with icons across all phone widths)
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             shape = RoundedCornerShape(14.dp),
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
-                Text(
-                    text = "ROUTING TOPOLOGY",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Route,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Text(
+                        text = "ROUTING TOPOLOGY",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Spacer(Modifier.height(10.dp))
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     RoutingMode.entries.forEachIndexed { index, mode ->
                         val isSelected = state.settings.routingMode == mode
+                        val modeIcon = when (mode) {
+                            RoutingMode.FULL_TUNNEL -> Icons.Outlined.Shield
+                            RoutingMode.SMART_GEO_BYPASS -> Icons.Outlined.Public
+                            RoutingMode.LOCAL_PROXY_ONLY -> Icons.Outlined.Hub
+                        }
                         SegmentedButton(
                             selected = isSelected,
                             onClick = { viewModel.setRoutingMode(mode) },
@@ -256,13 +276,27 @@ fun DashboardScreen(
                                 index = index,
                                 count = RoutingMode.entries.size,
                             ),
-                            icon = {},
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                activeContentColor = MaterialTheme.colorScheme.primary,
+                                activeBorderColor = MaterialTheme.colorScheme.primary,
+                                inactiveContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                inactiveContentColor = MaterialTheme.colorScheme.onSurface,
+                                inactiveBorderColor = MaterialTheme.colorScheme.outline,
+                            ),
+                            icon = {
+                                Icon(
+                                    imageVector = modeIcon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                )
+                            },
                             label = {
                                 Text(
                                     text = mode.shortLabel,
                                     style = MaterialTheme.typography.labelMedium.copy(
-                                        fontSize = 12.sp,
-                                        letterSpacing = 0.1.sp,
+                                        fontSize = 11.5.sp,
+                                        letterSpacing = 0.sp,
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                     ),
                                     maxLines = 1,
@@ -317,7 +351,14 @@ private fun PrimaryConnectionCard(
 
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.5.dp, statusColor.copy(alpha = if (isConnected) 0.65f else 0.28f)),
+        border = BorderStroke(
+            width = 1.5.dp,
+            color = if (vpn is VpnConnectionState.Disconnected) {
+                MaterialTheme.colorScheme.outline
+            } else {
+                statusColor.copy(alpha = if (isConnected) 0.72f else 0.45f)
+            },
+        ),
         shape = RoundedCornerShape(18.dp),
     ) {
         Column(
@@ -364,7 +405,7 @@ private fun PrimaryConnectionCard(
                 } else {
                     ProtocolBadge(
                         text = state.settings.tunSettings.backend.label,
-                        accentColor = AetherPalette.TelemetryCyan,
+                        accentColor = AetherPalette.AetherCyan,
                     )
                 }
             }
@@ -406,7 +447,7 @@ private fun PrimaryConnectionCard(
                         else -> state.selectedProfile?.resolvedEngine()?.displayName ?: "Xray / Sing-box / AWG"
                     }
                     ProtocolBadge(text = protoBadge, accentColor = AetherPalette.EmeraldSignal)
-                    ProtocolBadge(text = engineBadge, accentColor = AetherPalette.TelemetryCyan)
+                    ProtocolBadge(text = engineBadge, accentColor = AetherPalette.AetherCyan)
 
                     if (vpn is VpnConnectionState.Connected && vpn.chainedExitName != null) {
                         ProtocolBadge(
@@ -435,33 +476,34 @@ private fun PrimaryConnectionCard(
                     is VpnConnectionState.Connected -> vpn.latestHttpDelayMs
                     else -> state.selectedProfile?.urlTestDelayMs ?: -1L
                 }
-                AssistChip(
+                AetherActionChip(
                     onClick = onPingRefresh,
-                    label = {
-                        Text(
-                            text = if (rtt > 0L) "HTTP-204: $rtt ms" else "Test Latency",
-                            style = AetherMonoTypography.codeSmall,
-                            maxLines = 1,
-                            softWrap = false,
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Speed,
-                            contentDescription = "Measure HTTP-204 latency",
-                            modifier = Modifier.size(16.dp),
-                        )
-                    },
+                    label = if (rtt > 0L) "HTTP-204: $rtt ms" else "Test Latency",
+                    icon = Icons.Outlined.Speed,
+                    iconTint = AetherPalette.EmeraldSignal,
                 )
 
                 Spacer(Modifier.width(8.dp))
 
                 OutlinedButton(
                     onClick = onSelectEndpointClick,
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        contentColor = MaterialTheme.colorScheme.primary,
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)),
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
                 ) {
+                    Icon(
+                        imageVector = Icons.Outlined.SwapHoriz,
+                        contentDescription = null,
+                        modifier = Modifier.size(17.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
                     Text(
                         text = "Switch Node",
+                        fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         softWrap = false,
                     )
@@ -469,6 +511,7 @@ private fun PrimaryConnectionCard(
             }
 
             // Authoritative Enterprise Connect / Disconnect Action Button (TV D-pad & Touch friendly)
+            val isDangerAction = isConnected || isBusy
             Button(
                 onClick = onToggleConnection,
                 modifier = Modifier
@@ -480,10 +523,15 @@ private fun PrimaryConnectionCard(
                     },
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isConnected || isBusy) {
+                    containerColor = if (isDangerAction) {
                         AetherPalette.AlertCrimson
                     } else {
                         AetherPalette.EmeraldSignal
+                    },
+                    contentColor = if (isDangerAction) {
+                        Color.White
+                    } else {
+                        Color(0xFF022C22)
                     },
                 ),
             ) {
@@ -579,7 +627,7 @@ private fun LiveTelemetryChartCard(
                     Text(
                         text = "UPLOAD",
                         style = MaterialTheme.typography.labelMedium,
-                        color = AetherPalette.TelemetryCyan,
+                        color = AetherPalette.AetherCyan,
                     )
                     Text(
                         text = formatBitrateHuman(latest.uplinkBps),
@@ -660,7 +708,7 @@ private fun LiveTelemetryChartCard(
                     )
                     drawPath(
                         path = upPath,
-                        color = AetherPalette.TelemetryCyan,
+                        color = AetherPalette.AetherCyan,
                         style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round),
                     )
                 }
@@ -699,7 +747,7 @@ private fun ExitNetworkVerificationCard(
                     Icon(
                         imageVector = Icons.Outlined.Public,
                         contentDescription = null,
-                        tint = AetherPalette.TelemetryCyan,
+                        tint = AetherPalette.AetherCyan,
                         modifier = Modifier.size(18.dp),
                     )
                     Text(
@@ -717,6 +765,7 @@ private fun ExitNetworkVerificationCard(
                         Icon(
                             imageVector = Icons.Outlined.Refresh,
                             contentDescription = "Verify tunnel exit IP and DNS leak status",
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }

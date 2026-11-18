@@ -8,6 +8,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -21,27 +22,41 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.ContentCut
+import androidx.compose.material.icons.outlined.Contrast
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.DynamicFeed
+import androidx.compose.material.icons.outlined.EnhancedEncryption
+import androidx.compose.material.icons.outlined.GppGood
+import androidx.compose.material.icons.outlined.GraphicEq
+import androidx.compose.material.icons.outlined.Lan
+import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Memory
-import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material3.AssistChip
+import androidx.compose.material.icons.outlined.SwapCalls
+import androidx.compose.material.icons.outlined.SwapVert
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,6 +66,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -59,7 +75,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.ceoeg.aetherflow.core.common.database.TunnelRepository
+import com.ceoeg.aetherflow.core.common.design.AetherFilterChip
 import com.ceoeg.aetherflow.core.common.design.AetherMonoTypography
+import com.ceoeg.aetherflow.core.common.design.AetherOptionSwitchRow
 import com.ceoeg.aetherflow.core.common.design.AetherPalette
 import com.ceoeg.aetherflow.core.common.design.ProtocolBadge
 import com.ceoeg.aetherflow.core.common.logging.DiagnosticLogger
@@ -274,10 +292,17 @@ fun SettingsScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     ThemeMode.entries.forEach { mode ->
-                        FilterChip(
+                        val themeIcon = when (mode) {
+                            ThemeMode.PITCH_BLACK_AMOLED -> Icons.Outlined.Contrast
+                            ThemeMode.SLATE_DARK -> Icons.Outlined.DarkMode
+                            ThemeMode.CRISP_LIGHT -> Icons.Outlined.LightMode
+                            ThemeMode.DYNAMIC_MONOCHROME -> Icons.Outlined.AutoAwesome
+                        }
+                        AetherFilterChip(
                             selected = settings.themeMode == mode,
                             onClick = { viewModel.setThemeMode(mode) },
-                            label = { Text(mode.label) },
+                            label = mode.label,
+                            icon = themeIcon,
                         )
                     }
                 }
@@ -304,7 +329,7 @@ fun SettingsScreen(
                         modifier = Modifier.weight(1f),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(Icons.Outlined.Memory, contentDescription = null, tint = AetherPalette.TelemetryCyan)
+                        Icon(Icons.Outlined.Memory, contentDescription = null, tint = AetherPalette.AetherCyan)
                         Spacer(Modifier.width(8.dp))
                         Text(
                             text = "Native TUN Stack & MTU Tuning",
@@ -319,23 +344,62 @@ fun SettingsScreen(
 
                 TunBackendMode.entries.forEach { backend ->
                     val selected = tun.backend == backend
+                    val backendIcon = when (backend) {
+                        TunBackendMode.HEV_SOCKS5_TUNNEL -> Icons.Outlined.Bolt
+                        TunBackendMode.BADVPN_TUN2SOCKS -> Icons.Outlined.SwapCalls
+                        TunBackendMode.CORE_NATIVE_TUN -> Icons.Outlined.Memory
+                        TunBackendMode.PROXY_ONLY -> Icons.Outlined.Lan
+                    }
                     Surface(
                         shape = RoundedCornerShape(10.dp),
-                        color = if (selected) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
+                        color = if (selected) {
+                            MaterialTheme.colorScheme.surfaceContainerHigh
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerLow
+                        },
                         border = BorderStroke(
-                            1.dp,
+                            if (selected) 1.5.dp else 1.dp,
                             if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { viewModel.updateTunSettings { it.copy(backend = backend) } },
                     ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text(text = backend.label, style = AetherMonoTypography.metricMedium)
-                            Text(
-                                text = backend.description,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                                modifier = Modifier.size(34.dp),
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = backendIcon,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = backend.label, style = AetherMonoTypography.metricMedium)
+                                Text(
+                                    text = backend.description,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            Icon(
+                                imageVector = if (selected) Icons.Outlined.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
+                                contentDescription = null,
+                                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp),
                             )
                         }
                     }
@@ -350,9 +414,11 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         listOf(1280, 1360, 1400, 1420, 1500, 9000).forEach { preset ->
-                            AssistChip(
+                            AetherFilterChip(
+                                selected = tun.mtu == preset,
                                 onClick = { viewModel.updateTunSettings { it.copy(mtu = preset) } },
-                                label = { Text(preset.toString(), maxLines = 1) },
+                                label = preset.toString(),
+                                icon = Icons.Outlined.Tune,
                             )
                         }
                     }
@@ -363,28 +429,39 @@ fun SettingsScreen(
                             viewModel.updateTunSettings { it.copy(mtu = snapped) }
                         },
                         valueRange = 1280f..9000f,
+                        colors = SliderDefaults.colors(
+                            thumbColor = MaterialTheme.colorScheme.primary,
+                            activeTrackColor = MaterialTheme.colorScheme.primary,
+                            inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        ),
                     )
                 }
 
-                HorizontalDivider()
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-                SettingsSwitchRow(
+                AetherOptionSwitchRow(
                     title = "Hev UDP-in-TCP Encapsulation",
                     subtitle = "Wraps UDP datagrams inside SOCKS5 TCP streams when UDP relay is throttled",
                     checked = tun.hevUdpInTcp,
                     onCheckedChange = { v -> viewModel.updateTunSettings { it.copy(hevUdpInTcp = v) } },
+                    icon = Icons.Outlined.SwapVert,
+                    iconTint = AetherPalette.AetherCyan,
                 )
-                SettingsSwitchRow(
+                AetherOptionSwitchRow(
                     title = "Kernel Multi-Queue TUN",
                     subtitle = "Enables multi-queue packet dispatch on supported Linux/Android kernels",
                     checked = tun.hevMultiQueue,
                     onCheckedChange = { v -> viewModel.updateTunSettings { it.copy(hevMultiQueue = v) } },
+                    icon = Icons.Outlined.DynamicFeed,
+                    iconTint = AetherPalette.TelemetryCyan,
                 )
-                SettingsSwitchRow(
+                AetherOptionSwitchRow(
                     title = "Strict Kill-Switch Blocking",
                     subtitle = "Blocks non-VPN socket leaks during tunnel startup and handoff",
                     checked = tun.killSwitchBlocking,
                     onCheckedChange = { v -> viewModel.updateTunSettings { it.copy(killSwitchBlocking = v) } },
+                    icon = Icons.Outlined.GppGood,
+                    iconTint = AetherPalette.EmeraldSignal,
                 )
 
                 OutlinedButton(
@@ -395,12 +472,18 @@ fun SettingsScreen(
                             )
                         }
                     },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Icon(Icons.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(
                         text = "System Always-On VPN Settings",
+                        fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -425,11 +508,13 @@ fun SettingsScreen(
                     Text("Intelligent Node Selection & Auto-Failover", style = MaterialTheme.typography.titleMedium)
                 }
 
-                SettingsSwitchRow(
+                AetherOptionSwitchRow(
                     title = "Smart Auto-Select Lowest Latency Endpoint",
                     subtitle = "Automatically connects to the fastest verified node and hot-swaps on timeout",
                     checked = settings.smartAutoSelectEnabled,
                     onCheckedChange = { v -> viewModel.updateFailoverAndProbing(smartAutoSelect = v) },
+                    icon = Icons.Outlined.AutoAwesome,
+                    iconTint = AetherPalette.WarningAmber,
                 )
 
                 OutlinedTextField(
@@ -460,11 +545,13 @@ fun SettingsScreen(
                     Text("Active Anti-DPI & Stealth Arsenal", style = MaterialTheme.typography.titleMedium)
                 }
 
-                SettingsSwitchRow(
+                AetherOptionSwitchRow(
                     title = "Global TLS ClientHello Fragmentation",
                     subtitle = "Splits outbound TLS ClientHello records into randomized byte chunks",
                     checked = antiDpi.forceTlsFragment,
                     onCheckedChange = { v -> viewModel.updateAntiDpiDefaults { it.copy(forceTlsFragment = v) } },
+                    icon = Icons.Outlined.ContentCut,
+                    iconTint = AetherPalette.EmeraldSignal,
                 )
                 if (antiDpi.forceTlsFragment) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -491,13 +578,15 @@ fun SettingsScreen(
                     }
                 }
 
-                HorizontalDivider()
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-                SettingsSwitchRow(
+                AetherOptionSwitchRow(
                     title = "Global UDP Noise Injection",
                     subtitle = "Injects randomized decoy UDP packets ahead of QUIC / WireGuard handshakes",
                     checked = antiDpi.forceUdpNoise,
                     onCheckedChange = { v -> viewModel.updateAntiDpiDefaults { it.copy(forceUdpNoise = v) } },
+                    icon = Icons.Outlined.GraphicEq,
+                    iconTint = AetherPalette.AetherCyan,
                 )
                 if (antiDpi.forceUdpNoise) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -524,13 +613,15 @@ fun SettingsScreen(
                     }
                 }
 
-                HorizontalDivider()
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-                SettingsSwitchRow(
+                AetherOptionSwitchRow(
                     title = "Enable ECH (Encrypted Client Hello) by Default",
                     subtitle = "Encrypts outer SNI where supported by endpoint DNS HTTPS records",
                     checked = antiDpi.enableEchByDefault,
                     onCheckedChange = { v -> viewModel.updateAntiDpiDefaults { it.copy(enableEchByDefault = v) } },
+                    icon = Icons.Outlined.EnhancedEncryption,
+                    iconTint = AetherPalette.TelemetryCyan,
                 )
             }
         }
@@ -538,7 +629,7 @@ fun SettingsScreen(
         // 5. Encrypted .vpnbak Backup & Restore
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, AetherPalette.TelemetryCyan.copy(alpha = 0.45f)),
+            border = BorderStroke(1.dp, AetherPalette.AetherCyan.copy(alpha = 0.50f)),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -547,7 +638,7 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.Lock, contentDescription = null, tint = AetherPalette.TelemetryCyan)
+                    Icon(Icons.Outlined.Lock, contentDescription = null, tint = AetherPalette.AetherCyan)
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
@@ -585,6 +676,7 @@ fun SettingsScreen(
                             }
                         },
                         enabled = backupPassword.length >= 6,
+                        shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.weight(1f),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp),
                     ) {
@@ -592,6 +684,7 @@ fun SettingsScreen(
                         Spacer(Modifier.width(6.dp))
                         Text(
                             text = "Export .vpnbak",
+                            fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             softWrap = false,
                             overflow = TextOverflow.Ellipsis,
@@ -600,6 +693,11 @@ fun SettingsScreen(
                     OutlinedButton(
                         onClick = { openBackupLauncher.launch(arrayOf("*/*")) },
                         enabled = backupPassword.length >= 6,
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)),
                         modifier = Modifier.weight(1f),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp),
                     ) {
@@ -607,6 +705,7 @@ fun SettingsScreen(
                         Spacer(Modifier.width(6.dp))
                         Text(
                             text = "Restore .vpnbak",
+                            fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             softWrap = false,
                             overflow = TextOverflow.Ellipsis,
@@ -615,30 +714,5 @@ fun SettingsScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun SettingsSwitchRow(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Spacer(Modifier.width(12.dp))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }

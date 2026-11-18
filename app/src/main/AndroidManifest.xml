@@ -24,7 +24,7 @@
     <application
         android:name=".AetherFlowApp"
         android:allowBackup="false"
-        android:banner="@drawable/ic_qs_shield"
+        android:banner="@drawable/aetherflow_logo"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"

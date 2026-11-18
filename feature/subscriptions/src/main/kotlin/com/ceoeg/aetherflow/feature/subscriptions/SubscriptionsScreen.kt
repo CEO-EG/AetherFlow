@@ -20,23 +20,28 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.CloudSync
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -54,7 +59,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.ceoeg.aetherflow.core.common.database.TunnelRepository
+import com.ceoeg.aetherflow.core.common.design.AetherFilterChip
 import com.ceoeg.aetherflow.core.common.design.AetherMonoTypography
+import com.ceoeg.aetherflow.core.common.design.AetherOptionSwitchRow
 import com.ceoeg.aetherflow.core.common.design.AetherPalette
 import com.ceoeg.aetherflow.core.common.design.ProtocolBadge
 import com.ceoeg.aetherflow.core.common.design.formatBytesHuman
@@ -186,7 +193,7 @@ fun SubscriptionsScreen(
         // 1-Tap Cloudflare WARP & WARP-in-WARP Provisioner Card
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, AetherPalette.TelemetryCyan.copy(alpha = 0.45f)),
+            border = BorderStroke(1.dp, AetherPalette.AetherCyan.copy(alpha = 0.50f)),
             shape = RoundedCornerShape(14.dp),
         ) {
             Column(
@@ -199,11 +206,11 @@ fun SubscriptionsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Icon(Icons.Outlined.Layers, null, tint = AetherPalette.TelemetryCyan)
+                    Icon(Icons.Outlined.Layers, null, tint = AetherPalette.AetherCyan)
                     Text(
                         text = "CLOUDFLARE WARP & DETOUR ENROLLMENT",
                         style = MaterialTheme.typography.labelMedium,
-                        color = AetherPalette.TelemetryCyan,
+                        color = AetherPalette.AetherCyan,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -220,11 +227,15 @@ fun SubscriptionsScreen(
                     Button(
                         onClick = { viewModel.enrollCloudflareWarp(twoHopWarpInWarp = false) },
                         enabled = !state.isBusy,
+                        shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.weight(1f),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp),
                     ) {
+                        Icon(Icons.Outlined.Bolt, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(5.dp))
                         Text(
                             text = "1-Tap WARP",
+                            fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             softWrap = false,
                             overflow = TextOverflow.Ellipsis,
@@ -233,11 +244,19 @@ fun SubscriptionsScreen(
                     OutlinedButton(
                         onClick = { viewModel.enrollCloudflareWarp(twoHopWarpInWarp = true) },
                         enabled = !state.isBusy,
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)),
                         modifier = Modifier.weight(1f),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp),
                     ) {
+                        Icon(Icons.Outlined.AccountTree, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(5.dp))
                         Text(
                             text = "WARP-in-WARP",
+                            fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             softWrap = false,
                             overflow = TextOverflow.Ellipsis,
@@ -266,6 +285,11 @@ fun SubscriptionsScreen(
                 OutlinedButton(
                     onClick = viewModel::syncAll,
                     enabled = !state.isBusy,
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
                 ) {
                     Icon(Icons.Outlined.CloudSync, null, Modifier.size(16.dp))
@@ -274,11 +298,12 @@ fun SubscriptionsScreen(
                 }
                 Button(
                     onClick = { showAddDialog = true },
+                    shape = RoundedCornerShape(10.dp),
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
                 ) {
                     Icon(Icons.Outlined.Add, null, Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Add Feed", maxLines = 1, softWrap = false)
+                    Text("Add Feed", fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
                 }
             }
         }
@@ -352,15 +377,25 @@ private fun SubscriptionQuotaCard(
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         ProtocolBadge("${feed.profileCount} NODES", accentColor = AetherPalette.EmeraldSignal)
-                        ProtocolBadge("UA: ${feed.userAgent.label}", accentColor = AetherPalette.TelemetryCyan)
+                        ProtocolBadge("UA: ${feed.userAgent.label}", accentColor = AetherPalette.AetherCyan)
                     }
                 }
                 Row {
                     IconButton(onClick = onSync, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Outlined.Refresh, contentDescription = "Sync subscription", modifier = Modifier.size(18.dp))
+                        Icon(
+                            imageVector = Icons.Outlined.Refresh,
+                            contentDescription = "Sync subscription",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
                     }
                     IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Outlined.Delete, contentDescription = "Delete subscription", modifier = Modifier.size(18.dp))
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = "Delete subscription",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(18.dp),
+                        )
                     }
                 }
             }
@@ -376,6 +411,7 @@ private fun SubscriptionQuotaCard(
                     } else {
                         AetherPalette.EmeraldSignal
                     },
+                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -432,7 +468,7 @@ private fun AddSubscriptionDialog(
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 OutlinedTextField(
                     value = name,
@@ -452,28 +488,24 @@ private fun AddSubscriptionDialog(
                 Text("HTTP User-Agent Preset", style = MaterialTheme.typography.labelMedium)
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     UserAgentPreset.entries.forEach { preset ->
-                        FilterChip(
+                        AetherFilterChip(
                             selected = ua == preset,
                             onClick = { ua = preset },
-                            label = { Text(preset.label, maxLines = 1) },
+                            label = preset.label,
+                            icon = Icons.Outlined.Verified,
                         )
                     }
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "Background WorkManager Sync",
-                        modifier = Modifier.weight(1f),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Switch(checked = autoSync, onCheckedChange = { autoSync = it })
-                }
+                AetherOptionSwitchRow(
+                    title = "Background WorkManager Sync",
+                    subtitle = "Periodically refreshes endpoints in the background",
+                    checked = autoSync,
+                    onCheckedChange = { autoSync = it },
+                    icon = Icons.Outlined.Sync,
+                )
                 if (autoSync) {
                     OutlinedTextField(
                         value = hours,
@@ -492,11 +524,17 @@ private fun AddSubscriptionDialog(
                     onConfirm(name, url, ua, hours.toIntOrNull() ?: 12, autoSync)
                 },
             ) {
+                Icon(Icons.Outlined.CloudDownload, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
                 Text("Save & Sync")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) {
+                Icon(Icons.Outlined.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Cancel")
+            }
         },
     )
 }

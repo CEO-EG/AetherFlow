@@ -12,12 +12,12 @@
                     <map id="android.settings.VPN_SETTINGS (used to start an activity)">
                         <location id="0"
                             file="${:feature:settings*debug*MAIN*sourceProvider*0*javaDir*2}/com/ceoeg/aetherflow/feature/settings/SettingsScreen.kt"
-                            line="394"
+                            line="471"
                             column="33"
-                            startOffset="17144"
-                            endLine="394"
+                            startOffset="21768"
+                            endLine="471"
                             endColumn="69"
-                            endOffset="17180"/>
+                            endOffset="21804"/>
                     </map>
             </map>
     </map>

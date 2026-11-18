@@ -27,31 +27,51 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.CloudQueue
+import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DeleteSweep
+import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.EnhancedEncryption
 import androidx.compose.material.icons.outlined.FileOpen
 import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material.icons.outlined.FilterNone
+import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material.icons.outlined.Terminal
+import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.VerifiedUser
+import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -80,7 +100,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.ceoeg.aetherflow.core.common.database.TunnelRepository
+import com.ceoeg.aetherflow.core.common.design.AetherActionChip
+import com.ceoeg.aetherflow.core.common.design.AetherFilterChip
 import com.ceoeg.aetherflow.core.common.design.AetherMonoTypography
+import com.ceoeg.aetherflow.core.common.design.AetherOptionSwitchRow
 import com.ceoeg.aetherflow.core.common.design.AetherPalette
 import com.ceoeg.aetherflow.core.common.design.ProtocolBadge
 import com.ceoeg.aetherflow.core.common.model.AppSettings
@@ -305,7 +328,7 @@ fun ProfilesScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Subscription Group Tabs
+        // Subscription Group Tabs with Icons
         val tabs = listOf<Pair<String?, String>>(null to "All Nodes") +
             state.subscriptions.map { it.id to it.name }
         val selectedIndex = tabs.indexOfFirst { it.first == state.selectedSubscriptionFilter }
@@ -315,12 +338,33 @@ fun ProfilesScreen(
             selectedTabIndex = selectedIndex,
             edgePadding = 16.dp,
             containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary,
         ) {
             tabs.forEachIndexed { idx, (subId, title) ->
+                val isTabSelected = idx == selectedIndex
                 Tab(
-                    selected = idx == selectedIndex,
+                    selected = isTabSelected,
                     onClick = { viewModel.selectSubscriptionTab(subId) },
-                    text = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    selectedContentColor = MaterialTheme.colorScheme.primary,
+                    unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Icon(
+                                imageVector = if (subId == null) Icons.Outlined.Dns else Icons.Outlined.CloudQueue,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                text = title,
+                                fontWeight = if (isTabSelected) FontWeight.SemiBold else FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    },
                 )
             }
         }
@@ -337,7 +381,13 @@ fun ProfilesScreen(
                 onValueChange = viewModel::updateSearch,
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                },
                 placeholder = {
                     Text(
                         text = "Search host, tag, or protocol...",
@@ -347,7 +397,7 @@ fun ProfilesScreen(
                 },
             )
 
-            // Quick Import & Creation Toolbar
+            // Quick Import & Creation Toolbar (All with Unified High-Contrast Icons)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -355,7 +405,7 @@ fun ProfilesScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                AssistChip(
+                AetherActionChip(
                     onClick = {
                         val cb = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
                         val clipText = cb?.primaryClip?.getItemAt(0)?.coerceToText(context)?.toString()
@@ -365,27 +415,31 @@ fun ProfilesScreen(
                             showRawImportDialog = true
                         }
                     },
-                    label = { Text("Paste URI") },
-                    leadingIcon = { Icon(Icons.Outlined.ContentPaste, null, Modifier.size(16.dp)) },
+                    label = "Paste URI",
+                    icon = Icons.Outlined.ContentPaste,
+                    iconTint = AetherPalette.AetherCyan,
                 )
-                AssistChip(
+                AetherActionChip(
                     onClick = { qrImageLauncher.launch("image/*") },
-                    label = { Text("Scan QR") },
-                    leadingIcon = { Icon(Icons.Outlined.QrCodeScanner, null, Modifier.size(16.dp)) },
+                    label = "Scan QR",
+                    icon = Icons.Outlined.QrCodeScanner,
+                    iconTint = AetherPalette.EmeraldSignal,
                 )
-                AssistChip(
+                AetherActionChip(
                     onClick = { filePickerLauncher.launch("*/*") },
-                    label = { Text("Import File") },
-                    leadingIcon = { Icon(Icons.Outlined.FileOpen, null, Modifier.size(16.dp)) },
+                    label = "Import File",
+                    icon = Icons.Outlined.FileOpen,
+                    iconTint = AetherPalette.TelemetryCyan,
                 )
-                AssistChip(
+                AetherActionChip(
                     onClick = { editingProfile = TunnelProfile(name = "New Endpoint") },
-                    label = { Text("New Node") },
-                    leadingIcon = { Icon(Icons.Outlined.Add, null, Modifier.size(16.dp)) },
+                    label = "New Node",
+                    icon = Icons.Outlined.Add,
+                    iconTint = AetherPalette.EmeraldBright,
                 )
             }
 
-            // Smart Auto-Select + Batch Maintenance Row
+            // Smart Auto-Select + Batch Maintenance Row (Every chip has a crisp icon & cohesive border)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -393,34 +447,43 @@ fun ProfilesScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                FilterChip(
+                AetherFilterChip(
                     selected = state.settings.smartAutoSelectEnabled,
                     onClick = { viewModel.setSmartAutoSelect(!state.settings.smartAutoSelectEnabled) },
-                    label = { Text("Smart Auto-Select") },
+                    label = "Smart Auto-Select",
+                    icon = Icons.Outlined.AutoAwesome,
+                    accentColor = AetherPalette.WarningAmber,
                 )
-                AssistChip(
+                AetherActionChip(
                     onClick = viewModel::testAllVisibleLatencies,
-                    label = { Text(if (state.isTestingLatency) "Probing..." else "Test Latencies") },
-                    leadingIcon = { Icon(Icons.Outlined.Speed, null, Modifier.size(16.dp)) },
+                    label = if (state.isTestingLatency) "Probing..." else "Test Latencies",
+                    icon = Icons.Outlined.Speed,
+                    iconTint = AetherPalette.EmeraldSignal,
                 )
-                AssistChip(
+                AetherActionChip(
                     onClick = viewModel::deduplicateEndpoints,
-                    label = { Text("Deduplicate") },
+                    label = "Deduplicate",
+                    icon = Icons.Outlined.FilterNone,
+                    iconTint = AetherPalette.TelemetryCyan,
                 )
-                AssistChip(
+                AetherActionChip(
                     onClick = viewModel::purgeUnreachable,
-                    label = { Text("Purge Dead") },
+                    label = "Purge Dead",
+                    icon = Icons.Outlined.DeleteSweep,
+                    iconTint = AetherPalette.WarningAmber,
                 )
-                AssistChip(
+                AetherActionChip(
                     onClick = {
                         val yaml = viewModel.exportAllAsClashYaml()
                         copyToClipboard(context, "Clash YAML", yaml)
                     },
-                    label = { Text("Copy Clash YAML") },
+                    label = "Copy Clash YAML",
+                    icon = Icons.Outlined.Code,
+                    iconTint = AetherPalette.AetherCyan,
                 )
             }
 
-            // Protocol Quick Filters
+            // Protocol Quick Filters with Distinct Protocol Icons
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -428,19 +491,20 @@ fun ProfilesScreen(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 listOf(
-                    ProtocolType.VLESS,
-                    ProtocolType.HYSTERIA2,
-                    ProtocolType.TUIC_V5,
-                    ProtocolType.ANYTLS_V2,
-                    ProtocolType.AMNEZIA_WG,
-                    ProtocolType.SHADOWSOCKS,
-                    ProtocolType.TROJAN,
-                    ProtocolType.SSH,
-                ).forEach { proto ->
-                    FilterChip(
+                    ProtocolType.VLESS to Icons.Outlined.Shield,
+                    ProtocolType.HYSTERIA2 to Icons.Outlined.Bolt,
+                    ProtocolType.TUIC_V5 to Icons.Outlined.Speed,
+                    ProtocolType.ANYTLS_V2 to Icons.Outlined.Lock,
+                    ProtocolType.AMNEZIA_WG to Icons.Outlined.VpnKey,
+                    ProtocolType.SHADOWSOCKS to Icons.Outlined.EnhancedEncryption,
+                    ProtocolType.TROJAN to Icons.Outlined.Security,
+                    ProtocolType.SSH to Icons.Outlined.Terminal,
+                ).forEach { (proto, protoIcon) ->
+                    AetherFilterChip(
                         selected = state.protocolFilter == proto,
                         onClick = { viewModel.selectProtocolFilter(proto) },
-                        label = { Text(proto.badgeLabel) },
+                        label = proto.badgeLabel,
+                        icon = protoIcon,
                     )
                 }
             }
@@ -498,11 +562,17 @@ fun ProfilesScreen(
                     viewModel.importRawPayload(rawText, "Manual Paste")
                     showRawImportDialog = false
                 }) {
+                    Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
                     Text("Import")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showRawImportDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showRawImportDialog = false }) {
+                    Icon(Icons.Outlined.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Cancel")
+                }
             },
         )
     }
@@ -539,7 +609,13 @@ private fun ProfileItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onSelect),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) {
+                MaterialTheme.colorScheme.surfaceContainerHigh
+            } else {
+                MaterialTheme.colorScheme.surface
+            },
+        ),
         border = BorderStroke(
             width = if (isSelected) 1.8.dp else 1.dp,
             color = if (isSelected) AetherPalette.EmeraldSignal else MaterialTheme.colorScheme.outline,
@@ -596,7 +672,7 @@ private fun ProfileItemCard(
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     ProtocolBadge(profile.protocol.badgeLabel, accentColor = AetherPalette.EmeraldSignal)
-                    ProtocolBadge(profile.resolvedEngine().displayName, accentColor = AetherPalette.TelemetryCyan)
+                    ProtocolBadge(profile.resolvedEngine().displayName, accentColor = AetherPalette.AetherCyan)
                     if (profile.tlsReality.mldsa65Verify.isNotBlank()) {
                         ProtocolBadge("PQ-MLDSA65", accentColor = AetherPalette.WarningAmber)
                     }
@@ -611,13 +687,28 @@ private fun ProfileItemCard(
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onCopy, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Outlined.ContentCopy, "Export URI/Config", Modifier.size(18.dp))
+                        Icon(
+                            imageVector = Icons.Outlined.ContentCopy,
+                            contentDescription = "Export URI/Config",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
                     }
                     IconButton(onClick = onEdit, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Outlined.Edit, "Edit Endpoint", Modifier.size(18.dp))
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = "Edit Endpoint",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp),
+                        )
                     }
                     IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Outlined.Delete, "Delete Endpoint", Modifier.size(18.dp))
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = "Delete Endpoint",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(18.dp),
+                        )
                     }
                 }
             }
@@ -685,15 +776,17 @@ private fun ProfileDualModeEditorDialog(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    FilterChip(
+                    AetherFilterChip(
                         selected = editorTab == 0,
                         onClick = { editorTab = 0 },
-                        label = { Text("Structured Form", maxLines = 1) },
+                        label = "Structured Form",
+                        icon = Icons.Outlined.Tune,
                     )
-                    FilterChip(
+                    AetherFilterChip(
                         selected = editorTab == 1,
                         onClick = { editorTab = 1 },
-                        label = { Text("Raw JSON / YAML", maxLines = 1) },
+                        label = "Raw JSON / YAML",
+                        icon = Icons.Outlined.Code,
                     )
                 }
             }
@@ -705,7 +798,7 @@ private fun ProfileDualModeEditorDialog(
                         .fillMaxWidth()
                         .height(380.dp)
                         .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     OutlinedTextField(
                         value = name,
@@ -717,7 +810,14 @@ private fun ProfileDualModeEditorDialog(
 
                     // Protocol Selector Dropdown
                     var protoMenuOpen by remember { mutableStateOf(false) }
-                    OutlinedButton(onClick = { protoMenuOpen = true }, modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = { protoMenuOpen = true },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
                         Icon(Icons.Outlined.FilterList, null, Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
                         Text(
@@ -802,41 +902,29 @@ private fun ProfileDualModeEditorDialog(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             SecurityMode.entries.forEach { sec ->
-                                FilterChip(
+                                val secIcon = when (sec) {
+                                    SecurityMode.NONE -> Icons.Outlined.LockOpen
+                                    SecurityMode.TLS -> Icons.Outlined.Lock
+                                    SecurityMode.REALITY -> Icons.Outlined.VerifiedUser
+                                }
+                                AetherFilterChip(
                                     selected = security == sec,
                                     onClick = { security = sec },
-                                    label = { Text(sec.wireValue.uppercase(), maxLines = 1) },
+                                    label = sec.wireValue.uppercase(),
+                                    icon = secIcon,
                                 )
                             }
                         }
 
                         if (security == SecurityMode.TLS) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Allow Custom SNI / Self-Signed Cert",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                    Text(
-                                        text = "Auto-pins server SHA-256 (pcs) & vcn on Xray v26+",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                }
-                                Spacer(Modifier.width(8.dp))
-                                Switch(
-                                    checked = allowInsecure,
-                                    onCheckedChange = { allowInsecure = it },
-                                )
-                            }
+                            AetherOptionSwitchRow(
+                                title = "Allow Custom SNI / Self-Signed Cert",
+                                subtitle = "Auto-pins server SHA-256 (pcs) & vcn on Xray v26+",
+                                checked = allowInsecure,
+                                onCheckedChange = { allowInsecure = it },
+                                icon = Icons.Outlined.VerifiedUser,
+                                iconTint = AetherPalette.WarningAmber,
+                            )
 
                             OutlinedTextField(
                                 value = verifyCertByName,
@@ -881,8 +969,14 @@ private fun ProfileDualModeEditorDialog(
                                         }
                                     }
                                 },
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                ),
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
+                                Icon(Icons.Outlined.Fingerprint, contentDescription = null, modifier = Modifier.size(17.dp))
+                                Spacer(Modifier.width(6.dp))
                                 Text(
                                     text = if (isFetchingPin) "Probing TLS Handshake..." else "Fetch Server Cert SHA-256",
                                     maxLines = 1,
@@ -927,10 +1021,11 @@ private fun ProfileDualModeEditorDialog(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             TransportType.entries.forEach { tr ->
-                                FilterChip(
+                                AetherFilterChip(
                                     selected = transport == tr,
                                     onClick = { transport = tr },
-                                    label = { Text(tr.label, maxLines = 1) },
+                                    label = tr.label,
+                                    icon = Icons.Outlined.SwapHoriz,
                                 )
                             }
                         }
@@ -946,25 +1041,30 @@ private fun ProfileDualModeEditorDialog(
                         }
                     }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = "TLS ClientHello Fragmentation",
-                            modifier = Modifier.weight(1f),
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Switch(checked = tlsFragment, onCheckedChange = { tlsFragment = it })
-                    }
+                    AetherOptionSwitchRow(
+                        title = "TLS ClientHello Fragmentation",
+                        subtitle = "Splits ClientHello records to defeat SNI DPI",
+                        checked = tlsFragment,
+                        onCheckedChange = { tlsFragment = it },
+                        icon = Icons.Outlined.ContentCut,
+                        iconTint = AetherPalette.EmeraldSignal,
+                    )
 
                     // Visual Outbound Proxy Chaining Selector (Entry Node -> Exit / WARP Detour)
                     var chainMenuOpen by remember { mutableStateOf(false) }
                     val selectedDetourName = detourId?.let { id ->
                         availableDetourProfiles.firstOrNull { it.id == id }?.name
                     } ?: "Direct Exit (Single-Hop)"
-                    OutlinedButton(onClick = { chainMenuOpen = true }, modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = { chainMenuOpen = true },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Outlined.AccountTree, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
                         Text(
                             text = "Exit Chain: $selectedDetourName",
                             maxLines = 1,
@@ -1068,11 +1168,17 @@ private fun ProfileDualModeEditorDialog(
                     }
                 },
             ) {
+                Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
                 Text("Save Endpoint")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) {
+                Icon(Icons.Outlined.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Cancel")
+            }
         },
     )
 }
@@ -1091,7 +1197,7 @@ private class ConfigSyntaxHighlightTransformation : VisualTransformation {
             }
             keyRegex.findAll(raw).forEach { m ->
                 addStyle(
-                    SpanStyle(color = Color(0xFF38BDF8), fontWeight = FontWeight.SemiBold),
+                    SpanStyle(color = Color(0xFF22D3EE), fontWeight = FontWeight.SemiBold),
                     m.range.first,
                     m.range.last + 1,
                 )

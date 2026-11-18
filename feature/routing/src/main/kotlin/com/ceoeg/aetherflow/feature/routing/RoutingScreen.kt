@@ -24,27 +24,51 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.AltRoute
+import androidx.compose.material.icons.automirrored.outlined.CallSplit
 import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.ClearAll
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material.icons.outlined.EnhancedEncryption
+import androidx.compose.material.icons.outlined.FilterCenterFocus
+import androidx.compose.material.icons.outlined.Forum
+import androidx.compose.material.icons.outlined.GppBad
+import androidx.compose.material.icons.outlined.Hub
+import androidx.compose.material.icons.outlined.Https
+import androidx.compose.material.icons.outlined.Lan
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Pin
+import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.SettingsSuggest
+import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material.icons.outlined.VerifiedUser
+import androidx.compose.material.icons.outlined.VideocamOff
+import androidx.compose.material.icons.outlined.VpnLock
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,12 +77,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -76,8 +98,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.ceoeg.aetherflow.core.common.database.TunnelRepository
+import com.ceoeg.aetherflow.core.common.design.AetherActionChip
+import com.ceoeg.aetherflow.core.common.design.AetherFilterChip
 import com.ceoeg.aetherflow.core.common.design.AetherMonoTypography
+import com.ceoeg.aetherflow.core.common.design.AetherOptionSwitchRow
 import com.ceoeg.aetherflow.core.common.design.AetherPalette
+import com.ceoeg.aetherflow.core.common.design.AetherSwitch
 import com.ceoeg.aetherflow.core.common.design.ProtocolBadge
 import com.ceoeg.aetherflow.core.common.design.formatBytesHuman
 import com.ceoeg.aetherflow.core.common.logging.DiagnosticLogger
@@ -292,23 +318,43 @@ fun RoutingScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Split Tunneling", "Geo & Rules", "DNS & Leak Shield")
+    val tabs = listOf(
+        "Split Tunneling" to Icons.Outlined.Apps,
+        "Geo & Rules" to Icons.Outlined.Public,
+        "DNS & Leak Shield" to Icons.Outlined.Dns,
+    )
 
     Column(modifier = Modifier.fillMaxSize()) {
         ScrollableTabRow(
             selectedTabIndex = selectedTab,
             containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary,
             edgePadding = 16.dp,
         ) {
-            tabs.forEachIndexed { index, label ->
+            tabs.forEachIndexed { index, (label, tabIcon) ->
+                val isSelected = selectedTab == index
                 Tab(
-                    selected = selectedTab == index,
+                    selected = isSelected,
                     onClick = { selectedTab = index },
+                    selectedContentColor = MaterialTheme.colorScheme.primary,
+                    unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     text = {
-                        Text(
-                            text = label,
-                            fontWeight = if (selectedTab == index) FontWeight.SemiBold else FontWeight.Normal,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Icon(
+                                imageVector = tabIcon,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                text = label,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                                maxLines = 1,
+                                softWrap = false,
+                            )
+                        }
                     },
                 )
             }
@@ -406,7 +452,7 @@ private fun SplitTunnelTab(
                     Spacer(Modifier.width(8.dp))
                     ProtocolBadge(
                         text = "${selectedPackages.size} APPS",
-                        accentColor = AetherPalette.TelemetryCyan,
+                        accentColor = AetherPalette.AetherCyan,
                     )
                 }
 
@@ -417,10 +463,16 @@ private fun SplitTunnelTab(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     SplitTunnelMode.entries.forEach { mode ->
-                        FilterChip(
+                        val modeIcon = when (mode) {
+                            SplitTunnelMode.DISABLED -> Icons.Outlined.Public
+                            SplitTunnelMode.TUNNEL_SELECTED_APPS -> Icons.Outlined.FilterCenterFocus
+                            SplitTunnelMode.BYPASS_SELECTED_APPS -> Icons.AutoMirrored.Outlined.CallSplit
+                        }
+                        AetherFilterChip(
                             selected = state.settings.splitTunnelMode == mode,
                             onClick = { viewModel.setSplitTunnelMode(mode) },
-                            label = { Text(mode.label) },
+                            label = mode.label,
+                            icon = modeIcon,
                         )
                     }
                 }
@@ -432,6 +484,11 @@ private fun SplitTunnelTab(
                 ) {
                     OutlinedButton(
                         onClick = viewModel::applyQuickBypassBanking,
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                     ) {
                         Icon(
@@ -440,16 +497,22 @@ private fun SplitTunnelTab(
                             modifier = Modifier.size(16.dp),
                         )
                         Spacer(Modifier.width(6.dp))
-                        Text("Bypass Banking")
+                        Text("Bypass Banking", maxLines = 1, softWrap = false)
                     }
                     if (selectedPackages.isNotEmpty()) {
                         TextButton(onClick = viewModel::clearSelectedPackages) {
-                            Text("Clear (${selectedPackages.size})")
+                            Icon(Icons.Outlined.ClearAll, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Clear (${selectedPackages.size})", maxLines = 1, softWrap = false)
                         }
                     }
                     Spacer(Modifier.weight(1f))
                     IconButton(onClick = { viewModel.refreshApps(force = true) }) {
-                        Icon(Icons.Outlined.Refresh, contentDescription = "Refresh installed apps")
+                        Icon(
+                            imageVector = Icons.Outlined.Refresh,
+                            contentDescription = "Refresh installed apps",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
                     }
                 }
             }
@@ -465,12 +528,12 @@ private fun SplitTunnelTab(
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
-                placeholder = { Text("Search app name or package ID...") },
-                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                placeholder = { Text("Search app name or package ID...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("System", style = MaterialTheme.typography.labelMedium)
-                Switch(
+                AetherSwitch(
                     checked = showSystemApps,
                     onCheckedChange = { showSystemApps = it },
                 )
@@ -484,10 +547,19 @@ private fun SplitTunnelTab(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             AppCategory.entries.forEach { category ->
-                FilterChip(
+                val catIcon = when (category) {
+                    AppCategory.ALL -> Icons.Outlined.Apps
+                    AppCategory.BROWSER -> Icons.Outlined.Language
+                    AppCategory.MESSAGING -> Icons.Outlined.Forum
+                    AppCategory.MEDIA -> Icons.Outlined.PlayCircle
+                    AppCategory.BANKING_FINANCE -> Icons.Outlined.AccountBalance
+                    AppCategory.SYSTEM_UTILITY -> Icons.Outlined.SettingsSuggest
+                }
+                AetherFilterChip(
                     selected = selectedCategory == category,
                     onClick = { selectedCategory = category },
-                    label = { Text(category.label) },
+                    label = category.label,
+                    icon = catIcon,
                 )
             }
         }
@@ -509,13 +581,13 @@ private fun SplitTunnelTab(
                     Card(
                         colors = CardDefaults.cardColors(
                             containerColor = if (isSelected) {
-                                MaterialTheme.colorScheme.surfaceVariant
+                                MaterialTheme.colorScheme.surfaceContainerHigh
                             } else {
                                 MaterialTheme.colorScheme.surface
                             }
                         ),
                         border = BorderStroke(
-                            1.dp,
+                            if (isSelected) 1.5.dp else 1.dp,
                             if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                         ),
                         shape = RoundedCornerShape(10.dp),
@@ -539,7 +611,7 @@ private fun SplitTunnelTab(
                             } else {
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
-                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
                                     modifier = Modifier.size(36.dp),
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
@@ -574,6 +646,11 @@ private fun SplitTunnelTab(
                             Checkbox(
                                 checked = isSelected,
                                 onCheckedChange = { viewModel.togglePackageSelection(app.packageName) },
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = MaterialTheme.colorScheme.primary,
+                                    checkmarkColor = MaterialTheme.colorScheme.onPrimary,
+                                    uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                ),
                             )
                         }
                     }
@@ -621,7 +698,7 @@ private fun GeoAndCustomRulesTab(
                             Icon(
                                 imageVector = Icons.Outlined.Public,
                                 contentDescription = null,
-                                tint = AetherPalette.TelemetryCyan,
+                                tint = AetherPalette.AetherCyan,
                             )
                             Spacer(Modifier.width(8.dp))
                             Column(modifier = Modifier.weight(1f)) {
@@ -642,6 +719,7 @@ private fun GeoAndCustomRulesTab(
                         Button(
                             onClick = viewModel::updateGeoDatabases,
                             enabled = !state.isUpdatingGeo,
+                            shape = RoundedCornerShape(10.dp),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                         ) {
                             if (state.isUpdatingGeo) {
@@ -657,7 +735,7 @@ private fun GeoAndCustomRulesTab(
                                 )
                             }
                             Spacer(Modifier.width(6.dp))
-                            Text("Sync", maxLines = 1, softWrap = false)
+                            Text("Sync", fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
                         }
                     }
 
@@ -690,27 +768,16 @@ private fun GeoAndCustomRulesTab(
                         }
                     }
 
-                    HorizontalDivider()
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Block Ads, Trackers & Malware", style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                "Rejects geosite:category-ads-all at the core router layer",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        Spacer(Modifier.width(10.dp))
-                        Switch(
-                            checked = state.settings.blockAdsAndMalware,
-                            onCheckedChange = viewModel::setBlockAdsAndMalware,
-                        )
-                    }
+                    AetherOptionSwitchRow(
+                        title = "Block Ads, Trackers & Malware",
+                        subtitle = "Rejects geosite:category-ads-all at the core router layer",
+                        checked = state.settings.blockAdsAndMalware,
+                        onCheckedChange = viewModel::setBlockAdsAndMalware,
+                        icon = Icons.Outlined.GppBad,
+                        iconTint = AetherPalette.AlertCrimson,
+                    )
 
                     val activeRegionLabel = GeoRuleSetManager.REGIONAL_PRESETS
                         .firstOrNull { it.first == state.settings.regionalBypassCode }?.second
@@ -719,6 +786,11 @@ private fun GeoAndCustomRulesTab(
                     Box {
                         OutlinedButton(
                             onClick = { regionalMenuExpanded = true },
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                            ),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Icon(Icons.Outlined.Route, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -764,11 +836,12 @@ private fun GeoAndCustomRulesTab(
                 Spacer(Modifier.width(8.dp))
                 Button(
                     onClick = { showAddDialog = true },
+                    shape = RoundedCornerShape(10.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                 ) {
                     Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Add Rule", maxLines = 1, softWrap = false)
+                    Text("Add Rule", fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
                 }
             }
         }
@@ -792,7 +865,7 @@ private fun GeoAndCustomRulesTab(
             items(state.rules, key = { it.id }) { rule ->
                 val actionColor = when (rule.action) {
                     RuleAction.PROXY -> AetherPalette.EmeraldSignal
-                    RuleAction.DIRECT -> AetherPalette.TelemetryCyan
+                    RuleAction.DIRECT -> AetherPalette.AetherCyan
                     RuleAction.BLOCK -> AetherPalette.AlertCrimson
                 }
                 Card(
@@ -831,7 +904,7 @@ private fun GeoAndCustomRulesTab(
                             )
                         }
                         Spacer(Modifier.width(8.dp))
-                        Switch(
+                        AetherSwitch(
                             checked = rule.enabled,
                             onCheckedChange = { viewModel.toggleRuleEnabled(rule) },
                         )
@@ -891,10 +964,22 @@ private fun AddRoutingRuleDialog(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     RuleMatchType.entries.forEach { type ->
-                        FilterChip(
+                        val typeIcon = when (type) {
+                            RuleMatchType.DOMAIN_SUFFIX,
+                            RuleMatchType.DOMAIN_KEYWORD,
+                            RuleMatchType.DOMAIN_FULL -> Icons.Outlined.Language
+                            RuleMatchType.GEOSITE,
+                            RuleMatchType.GEOIP -> Icons.Outlined.Public
+                            RuleMatchType.CIDR -> Icons.Outlined.Lan
+                            RuleMatchType.PORT -> Icons.Outlined.Pin
+                            RuleMatchType.PROTOCOL -> Icons.Outlined.Bolt
+                            RuleMatchType.PROCESS_PACKAGE -> Icons.Outlined.Apps
+                        }
+                        AetherFilterChip(
                             selected = matchType == type,
                             onClick = { matchType = type },
-                            label = { Text(type.label) },
+                            label = type.label,
+                            icon = typeIcon,
                         )
                     }
                 }
@@ -911,10 +996,16 @@ private fun AddRoutingRuleDialog(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     RuleAction.entries.forEach { act ->
-                        FilterChip(
+                        val actIcon = when (act) {
+                            RuleAction.PROXY -> Icons.Outlined.Shield
+                            RuleAction.DIRECT -> Icons.AutoMirrored.Outlined.CallSplit
+                            RuleAction.BLOCK -> Icons.Outlined.Block
+                        }
+                        AetherFilterChip(
                             selected = action == act,
                             onClick = { action = act },
-                            label = { Text(act.label, maxLines = 1) },
+                            label = act.label,
+                            icon = actIcon,
                         )
                     }
                 }
@@ -940,11 +1031,17 @@ private fun AddRoutingRuleDialog(
                 },
                 enabled = value.isNotBlank(),
             ) {
+                Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
                 Text("Save Rule")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) {
+                Icon(Icons.Outlined.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Cancel")
+            }
         },
     )
 }
@@ -994,13 +1091,15 @@ private fun DnsStudioTab(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     presets.forEach { (label, pair) ->
-                        AssistChip(
+                        AetherActionChip(
                             onClick = {
                                 onUpdate {
                                     it.copy(remoteProtocol = pair.first, remoteDnsServer = pair.second)
                                 }
                             },
-                            label = { Text(label) },
+                            label = label,
+                            icon = Icons.Outlined.VerifiedUser,
+                            iconTint = AetherPalette.EmeraldSignal,
                         )
                     }
                 }
@@ -1011,10 +1110,18 @@ private fun DnsStudioTab(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     DnsProtocol.entries.forEach { proto ->
-                        FilterChip(
+                        val protoIcon = when (proto) {
+                            DnsProtocol.DOH -> Icons.Outlined.Https
+                            DnsProtocol.DOT -> Icons.Outlined.Lock
+                            DnsProtocol.DOQ -> Icons.Outlined.Bolt
+                            DnsProtocol.DNSCRYPT -> Icons.Outlined.EnhancedEncryption
+                            DnsProtocol.UDP_PLAIN -> Icons.Outlined.Dns
+                        }
+                        AetherFilterChip(
                             selected = dns.remoteProtocol == proto,
                             onClick = { onUpdate { it.copy(remoteProtocol = proto) } },
-                            label = { Text(proto.label) },
+                            label = proto.label,
+                            icon = protoIcon,
                         )
                     }
                 }
@@ -1028,24 +1135,14 @@ private fun DnsStudioTab(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Split-DNS Domestic Resolution", style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            "Resolves bypassed domestic domains directly without proxy latency",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Switch(
-                        checked = dns.splitDnsEnabled,
-                        onCheckedChange = { enabled -> onUpdate { it.copy(splitDnsEnabled = enabled) } },
-                    )
-                }
+                AetherOptionSwitchRow(
+                    title = "Split-DNS Domestic Resolution",
+                    subtitle = "Resolves bypassed domestic domains directly without proxy latency",
+                    checked = dns.splitDnsEnabled,
+                    onCheckedChange = { enabled -> onUpdate { it.copy(splitDnsEnabled = enabled) } },
+                    icon = Icons.AutoMirrored.Outlined.AltRoute,
+                    iconTint = AetherPalette.AetherCyan,
+                )
 
                 if (dns.splitDnsEnabled) {
                     OutlinedTextField(
@@ -1080,59 +1177,42 @@ private fun DnsStudioTab(
                     Text("Zero-Leak Shield & FakeIP", style = MaterialTheme.typography.titleMedium)
                 }
 
-                DnsToggleRow(
+                AetherOptionSwitchRow(
                     title = "FakeIP Synthetic Pool (198.18.0.0/15)",
                     subtitle = "Eliminates pre-connection DNS RTT by mapping domains synthetically in-core",
                     checked = dns.fakeIpEnabled,
                     onCheckedChange = { v -> onUpdate { it.copy(fakeIpEnabled = v) } },
+                    icon = Icons.Outlined.Hub,
+                    iconTint = AetherPalette.AetherCyan,
                 )
-                HorizontalDivider()
-                DnsToggleRow(
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                AetherOptionSwitchRow(
                     title = "Strict IPv6 Leak Prevention",
                     subtitle = "Suppresses un-tunneled AAAA resolution and blocks raw IPv6 egress leaks",
                     checked = dns.blockIpv6Leak,
                     onCheckedChange = { v -> onUpdate { it.copy(blockIpv6Leak = v) } },
+                    icon = Icons.Outlined.VpnLock,
+                    iconTint = AetherPalette.EmeraldSignal,
                 )
-                HorizontalDivider()
-                DnsToggleRow(
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                AetherOptionSwitchRow(
                     title = "WebRTC STUN / TURN Leak Blocker",
-                    subtitle = "Blocks UDP STUN discovery ports (3478, 5349, 19302) used tofingerprint real ISP IPs",
+                    subtitle = "Blocks UDP STUN discovery ports (3478, 5349, 19302) used to fingerprint real ISP IPs",
                     checked = dns.blockWebRtcStun,
                     onCheckedChange = { v -> onUpdate { it.copy(blockWebRtcStun = v) } },
+                    icon = Icons.Outlined.VideocamOff,
+                    iconTint = AetherPalette.WarningAmber,
                 )
-                HorizontalDivider()
-                DnsToggleRow(
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                AetherOptionSwitchRow(
                     title = "Block Direct QUIC (UDP/443) Bypass",
                     subtitle = "Forces browsers onto TLS/TCP when inspecting or fragmenting ClientHello",
                     checked = dns.blockQuicBypass,
                     onCheckedChange = { v -> onUpdate { it.copy(blockQuicBypass = v) } },
+                    icon = Icons.Outlined.Speed,
+                    iconTint = AetherPalette.TelemetryCyan,
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun DnsToggleRow(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Spacer(Modifier.width(12.dp))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }

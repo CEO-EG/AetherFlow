@@ -9,15 +9,27 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.CloudSync
+import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.Route
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.CloudSync
 import androidx.compose.material.icons.outlined.Dns
@@ -25,12 +37,15 @@ import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -43,8 +58,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -77,14 +95,15 @@ import javax.inject.Inject
 enum class AetherDestination(
     val title: String,
     val subtitle: String,
-    val icon: ImageVector,
+    val outlinedIcon: ImageVector,
+    val selectedIcon: ImageVector,
 ) {
-    DASHBOARD("Shield", "AetherFlow Telemetry", Icons.Outlined.Shield),
-    PROFILES("Nodes", "Endpoint Profiles", Icons.Outlined.Dns),
-    SUBSCRIPTIONS("Feeds", "Subscription & WARP Hub", Icons.Outlined.CloudSync),
-    ROUTING("Routing", "Split-Tunnel & Encrypted DNS", Icons.Outlined.Route),
-    DIAGNOSTICS("Inspect", "Socket & Log Diagnostics", Icons.Outlined.Analytics),
-    SETTINGS("Config", "Core & Anti-DPI Engine", Icons.Outlined.Settings),
+    DASHBOARD("Shield", "AetherFlow Telemetry", Icons.Outlined.Shield, Icons.Filled.Shield),
+    PROFILES("Nodes", "Endpoint Profiles", Icons.Outlined.Dns, Icons.Filled.Dns),
+    SUBSCRIPTIONS("Feeds", "Subscription & WARP Hub", Icons.Outlined.CloudSync, Icons.Filled.CloudSync),
+    ROUTING("Routing", "Split-Tunnel & Encrypted DNS", Icons.Outlined.Route, Icons.Filled.Route),
+    DIAGNOSTICS("Inspect", "Socket & Log Diagnostics", Icons.Outlined.Analytics, Icons.Filled.Analytics),
+    SETTINGS("Config", "Core & Anti-DPI Engine", Icons.Outlined.Settings, Icons.Filled.Settings),
 }
 
 @AndroidEntryPoint
@@ -202,63 +221,100 @@ private fun AetherAdaptiveRootScaffold(
 
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = currentDestination.subtitle,
-                            style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
-                    actions = {
-                        val badgeColor = when (vpnState) {
-                            is VpnConnectionState.Connected -> AetherPalette.EmeraldSignal
-                            is VpnConnectionState.Connecting, is VpnConnectionState.Reconnecting -> AetherPalette.WarningAmber
-                            is VpnConnectionState.Error -> AetherPalette.AlertCrimson
-                            else -> MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                        ProtocolBadge(
-                            text = vpnState.statusLabel.uppercase(),
-                            accentColor = badgeColor,
-                            modifier = Modifier.padding(end = 12.dp),
-                        )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background,
-                    ),
-                )
+                Column {
+                    TopAppBar(
+                        title = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.aetherflow_logo),
+                                    contentDescription = "AetherFlow Logo",
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .clip(RoundedCornerShape(8.dp)),
+                                )
+                                Text(
+                                    text = currentDestination.subtitle,
+                                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        },
+                        actions = {
+                            val badgeColor = when (vpnState) {
+                                is VpnConnectionState.Connected -> AetherPalette.EmeraldSignal
+                                is VpnConnectionState.Connecting, is VpnConnectionState.Reconnecting -> AetherPalette.WarningAmber
+                                is VpnConnectionState.Error -> AetherPalette.AlertCrimson
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                            ProtocolBadge(
+                                text = vpnState.statusLabel.uppercase(),
+                                accentColor = badgeColor,
+                                modifier = Modifier.padding(end = 12.dp),
+                            )
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.background,
+                            titleContentColor = MaterialTheme.colorScheme.onBackground,
+                        ),
+                    )
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                    )
+                }
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = {
                 if (!useWidescreenRail) {
-                    NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-                        AetherDestination.entries.forEach { dest ->
-                            NavigationBarItem(
-                                selected = currentDestination == dest,
-                                onClick = { currentDestination = dest },
-                                alwaysShowLabel = true,
-                                icon = {
-                                    Icon(
-                                        imageVector = dest.icon,
-                                        contentDescription = dest.title,
-                                        modifier = Modifier.size(20.dp),
-                                    )
-                                },
-                                label = {
-                                    Text(
-                                        text = dest.title,
-                                        style = MaterialTheme.typography.labelMedium.copy(
-                                            fontSize = 10.5.sp,
-                                            letterSpacing = 0.sp,
-                                        ),
-                                        maxLines = 1,
-                                        softWrap = false,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                },
-                            )
+                    Column {
+                        HorizontalDivider(
+                            thickness = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                        )
+                        NavigationBar(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            tonalElevation = 0.dp,
+                        ) {
+                            AetherDestination.entries.forEach { dest ->
+                                val isSelected = currentDestination == dest
+                                NavigationBarItem(
+                                    selected = isSelected,
+                                    onClick = { currentDestination = dest },
+                                    alwaysShowLabel = true,
+                                    icon = {
+                                        Icon(
+                                            imageVector = if (isSelected) dest.selectedIcon else dest.outlinedIcon,
+                                            contentDescription = dest.title,
+                                            modifier = Modifier.size(20.dp),
+                                        )
+                                    },
+                                    label = {
+                                        Text(
+                                            text = dest.title,
+                                            style = MaterialTheme.typography.labelMedium.copy(
+                                                fontSize = 10.5.sp,
+                                                letterSpacing = 0.sp,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                            ),
+                                            maxLines = 1,
+                                            softWrap = false,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                    },
+                                    colors = NavigationBarItemDefaults.colors(
+                                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    ),
+                                )
+                            }
                         }
                     }
                 }
@@ -274,13 +330,37 @@ private fun AetherAdaptiveRootScaffold(
                     NavigationRail(
                         containerColor = MaterialTheme.colorScheme.surface,
                         modifier = Modifier.fillMaxHeight(),
+                        header = {
+                            Spacer(Modifier.height(8.dp))
+                            Image(
+                                painter = painterResource(id = R.drawable.aetherflow_logo),
+                                contentDescription = "AetherFlow",
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(RoundedCornerShape(10.dp)),
+                            )
+                            Spacer(Modifier.height(4.dp))
+                        },
                     ) {
                         AetherDestination.entries.forEach { dest ->
+                            val isSelected = currentDestination == dest
                             NavigationRailItem(
-                                selected = currentDestination == dest,
+                                selected = isSelected,
                                 onClick = { currentDestination = dest },
-                                icon = { Icon(dest.icon, contentDescription = dest.title) },
+                                icon = {
+                                    Icon(
+                                        imageVector = if (isSelected) dest.selectedIcon else dest.outlinedIcon,
+                                        contentDescription = dest.title,
+                                    )
+                                },
                                 label = { Text(dest.title) },
+                                colors = NavigationRailItemDefaults.colors(
+                                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                ),
                                 modifier = Modifier.focusable(),
                             )
                         }
