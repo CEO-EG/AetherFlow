@@ -1,18 +1,47 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# Gradle & Kotlin build outputs across all modules
+.gradle/
+.kotlin/
+build/
+**/build/
+out/
+
+# Local SDK & environment configuration
 local.properties
+
+# IDE & Editor metadata
+*.iml
+*.ipr
+*.iws
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/deploymentTargetSelector.xml
+.idea/deviceManager.xml
+.idea/shelf/
+
+# Local AI / Agent / Scratch directories
+.agents/
+.gemini/
+.claude/
+
+# Native build & downloaded core staging caches
+.externalNativeBuild/
+.cxx/
 .build-cores/
 core/**/libs/*.aar
+core/**/libs/*.jar
 core/tun/src/main/jniLibs/
+
+# Packaged binaries, keystores & OS cruft
+*.apk
+*.aab
+*.ap_
+*.dex
+*.keystore
+*.jks
+captures/
+.DS_Store
+Thumbs.db

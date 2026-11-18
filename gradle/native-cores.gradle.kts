@@ -73,7 +73,7 @@ abstract class VerifyNativeCoresTask : DefaultTask() {
                 }
             } else {
                 logger.lifecycle(
-                    "Native artifact ${artifact.id} not yet installed at ${artifact.destinationRelativePath}; run './gradlew downloadNativeCores' or 'make fetch-cores'."
+                    "Native artifact ${artifact.id} not yet installed at ${artifact.destinationRelativePath}; run './gradlew downloadNativeCores'."
                 )
             }
         }

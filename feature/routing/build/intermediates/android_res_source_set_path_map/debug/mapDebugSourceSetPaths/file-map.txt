@@ -1,9 +1,0 @@
-com.ceoeg.aetherflow.feature.routing-pngs-0 /home/saleh/AndroidStudioProjects/AetherFlow/feature/routing/build/generated/res/pngs/debug
-com.ceoeg.aetherflow.feature.routing-updated_navigation_xml-1 /home/saleh/AndroidStudioProjects/AetherFlow/feature/routing/build/generated/updated_navigation_xml/debug
-com.ceoeg.aetherflow.feature.routing-mergeDebugResources-2 /home/saleh/AndroidStudioProjects/AetherFlow/feature/routing/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
-com.ceoeg.aetherflow.feature.routing-mergeDebugResources-3 /home/saleh/AndroidStudioProjects/AetherFlow/feature/routing/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
-com.ceoeg.aetherflow.feature.routing-debug-4 /home/saleh/AndroidStudioProjects/AetherFlow/feature/routing/build/intermediates/merged_res/debug/mergeDebugResources
-com.ceoeg.aetherflow.feature.routing-debug-5 /home/saleh/AndroidStudioProjects/AetherFlow/feature/routing/build/intermediates/packaged_res/debug/packageDebugResources
-com.ceoeg.aetherflow.feature.routing-debug-6 /home/saleh/AndroidStudioProjects/AetherFlow/feature/routing/src/debug/res
-com.ceoeg.aetherflow.feature.routing-main-7 /home/saleh/AndroidStudioProjects/AetherFlow/feature/routing/src/main/res
-gradleHome-0 /home/saleh/.gradle

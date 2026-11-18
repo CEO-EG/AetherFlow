@@ -1,2 +1,0 @@
--keep,allowobfuscation,allowshrinking class com.ceoeg.aetherflow.feature.diagnostics.DiagnosticsViewModel
--keep,allowobfuscation,allowshrinking class com.ceoeg.aetherflow.feature.diagnostics.DiagnosticsViewModel

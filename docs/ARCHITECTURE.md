@@ -67,8 +67,7 @@ Every JNI or `gomobile` boundary is encapsulated behind an injectable Kotlin int
 | `:core:engine-wireguard` | `WireGuardNativeBridge` | `amneziawg-android` (`org.amnezia.awg.backend.GoBackend`) | Reflection/JNI adapter over `GoBackend` userspace WireGuard/AWG tunnel |
 
 ### 3.2 Reproducible Native Artifact Verification
-- `gradle/native-cores.gradle.kts` registers `downloadAndVerifyNativeCores`, which fetches pinned release `.aar`/`.so` artifacts and verifies SHA-256 digests before copying into module `libs/` or `src/main/jniLibs/<abi>/`.
-- `scripts/build-cores.sh` builds `AndroidLibXrayLite` (`gomobile bind`), `sing-box/experimental/libbox` (`-tags with_quic,with_utls,with_gvisor,with_wireguard,with_ech`), and `hev-socks5-tunnel` (`ndk-build`) from pinned upstream tags using Go 1.24+ and Android NDK r28.
+- `gradle/native-cores.gradle.kts` registers `downloadNativeCores` and `verifyNativeCores`, which fetch pinned release `.aar`/`.so` artifacts and verify SHA-256 digests before installing into module `libs/` or `src/main/jniLibs/<abi>/`.
 
 ---
 
