@@ -137,4 +137,35 @@ class SingBoxConfigBuilderTest {
         assertEquals(listOf("proxy", "WARP-Exit"), parsed[0].outboundChain)
         assertEquals(65536L, parsed[0].downloadBytes)
     }
+
+    @Test
+    fun `emits both mixed and HTTP 0_0_0_0 LAN tethering inbounds when enabled`() {
+        val sessionAuth = authGenerator.generateSessionAuth()
+        val settings = AppSettings(
+            lanTethering = com.ceoeg.aetherflow.core.common.model.LanTetheringSettings(
+                enabled = true,
+                bindAddress = "0.0.0.0",
+                socksPort = 10810,
+                httpPort = 10811,
+                requireAuth = false,
+            ),
+        )
+        val hy2Profile = TunnelProfile(
+            name = "Hysteria2 Hotspot",
+            protocol = ProtocolType.HYSTERIA2,
+            serverAddress = "hy2.aether.example",
+            serverPort = 443,
+            password = "hy2_secret_auth",
+            tlsReality = TlsRealityConfig(security = SecurityMode.TLS, sni = "hy2.aether.example"),
+        )
+
+        val root = json.parseToJsonElement(builder.buildConfig(hy2Profile, settings, sessionAuth)).jsonObject
+        val inbounds = root["inbounds"]!!.jsonArray.map { it.jsonObject }
+        val lanMixed = inbounds.firstOrNull { it["tag"]?.jsonPrimitive?.content == "lan-mixed-in" }
+        val lanHttp = inbounds.firstOrNull { it["tag"]?.jsonPrimitive?.content == "lan-http-in" }
+        assertTrue(lanMixed != null && lanMixed["listen"]?.jsonPrimitive?.content == "0.0.0.0")
+        assertEquals(10810, lanMixed!!["listen_port"]?.jsonPrimitive?.content?.toInt())
+        assertTrue(lanHttp != null && lanHttp["listen"]?.jsonPrimitive?.content == "0.0.0.0")
+        assertEquals(10811, lanHttp!!["listen_port"]?.jsonPrimitive?.content?.toInt())
+    }
 }

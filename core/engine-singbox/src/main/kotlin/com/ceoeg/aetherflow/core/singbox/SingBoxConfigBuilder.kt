@@ -211,13 +211,17 @@ class SingBoxConfigBuilder @Inject constructor(
 
         val lan = settings.lanTethering
         if (lan.enabled) {
+            val listenAddr = lan.bindAddress.ifBlank { "0.0.0.0" }
+            val useAuth = lan.requireAuth && lan.password.isNotBlank()
             add(
                 buildJsonObject {
                     put("type", "mixed")
                     put("tag", "lan-mixed-in")
-                    put("listen", lan.bindAddress)
+                    put("listen", listenAddr)
                     put("listen_port", lan.socksPort)
-                    if (lan.requireAuth && lan.password.isNotBlank()) {
+                    put("sniff", true)
+                    put("sniff_override_destination", true)
+                    if (useAuth) {
                         putJsonArray("users") {
                             add(
                                 buildJsonObject {
@@ -229,6 +233,28 @@ class SingBoxConfigBuilder @Inject constructor(
                     }
                 }
             )
+            if (lan.httpPort != lan.socksPort) {
+                add(
+                    buildJsonObject {
+                        put("type", "http")
+                        put("tag", "lan-http-in")
+                        put("listen", listenAddr)
+                        put("listen_port", lan.httpPort)
+                        put("sniff", true)
+                        put("sniff_override_destination", true)
+                        if (useAuth) {
+                            putJsonArray("users") {
+                                add(
+                                    buildJsonObject {
+                                        put("username", lan.username)
+                                        put("password", lan.password)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                )
+            }
         }
     }
 

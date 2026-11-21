@@ -517,3 +517,14 @@ fun formatDurationHms(elapsedSeconds: Long): String {
     val s = safe % 60
     return String.format(Locale.US, "%02d:%02d:%02d", h, m, s)
 }
+
+object AetherBrandInfo {
+    const val APP_NAME = "AetherFlow"
+    const val APP_VERSION = "1.0.0"
+    const val APP_BUILD = "100"
+    const val DEVELOPER_HANDLE = "CEO-EG"
+    const val DEVELOPER_SIGNATURE = "Made by CEO-EG"
+    const val REPO_URL = "https://github.com/CEO-EG/AetherFlow"
+    const val REPO_SHORT = "github.com/CEO-EG/AetherFlow"
+}
+

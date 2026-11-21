@@ -182,17 +182,21 @@ class XrayConfigBuilder @Inject constructor(
             }
         )
 
-        // Optional LAN / Hotspot Tethering inbound
+        // Optional LAN / Hotspot Tethering inbounds (Neko-ray / v2rayNG compatible):
+        // 1. Unified "mixed" (SOCKS5 + HTTP + UDP) listener on socksPort
+        // 2. Dedicated "http" listener on httpPort (when distinct from socksPort)
         val lan = settings.lanTethering
         if (lan.enabled) {
+            val listenAddr = lan.bindAddress.ifBlank { "0.0.0.0" }
+            val useAuth = lan.requireAuth && lan.password.isNotBlank()
             add(
                 buildJsonObject {
-                    put("tag", "lan-socks-in")
-                    put("listen", lan.bindAddress)
+                    put("tag", "lan-mixed-in")
+                    put("listen", listenAddr)
                     put("port", lan.socksPort)
-                    put("protocol", "socks")
+                    put("protocol", "mixed")
                     putJsonObject("settings") {
-                        if (lan.requireAuth && lan.password.isNotBlank()) {
+                        if (useAuth) {
                             put("auth", "password")
                             putJsonArray("accounts") {
                                 add(
@@ -206,13 +210,43 @@ class XrayConfigBuilder @Inject constructor(
                             put("auth", "noauth")
                         }
                         put("udp", true)
+                        put("allowTransparent", false)
                     }
                     putJsonObject("sniffing") {
                         put("enabled", true)
                         put("destOverride", destOverrides)
+                        put("routeOnly", false)
                     }
                 }
             )
+            if (lan.httpPort != lan.socksPort) {
+                add(
+                    buildJsonObject {
+                        put("tag", "lan-http-in")
+                        put("listen", listenAddr)
+                        put("port", lan.httpPort)
+                        put("protocol", "http")
+                        putJsonObject("settings") {
+                            if (useAuth) {
+                                putJsonArray("accounts") {
+                                    add(
+                                        buildJsonObject {
+                                            put("user", lan.username)
+                                            put("pass", lan.password)
+                                        }
+                                    )
+                                }
+                            }
+                            put("allowTransparent", false)
+                        }
+                        putJsonObject("sniffing") {
+                            put("enabled", true)
+                            put("destOverride", destOverrides)
+                            put("routeOnly", false)
+                        }
+                    }
+                )
+            }
         }
     }
 

@@ -13,7 +13,8 @@
   - Default ultra-low-latency `hev-socks5-tunnel` C lwIP stack with instant fallback to `badvpn-tun2socks`, Core Native TUN, and Proxy-Only mode, plus customizable MTU (`1280`–`9000`).
 - **Active Anti-DPI & Zero-Leak DNS**:
   - TLS ClientHello fragmentation, UDP noise injection, ECH, visual multi-hop proxy chaining, encrypted DoH/DoT/DoQ/DNSCrypt DNS, Split-DNS, FakeIP (`198.18.0.0/15`), IPv6/WebRTC/QUIC leak shields, and per-session ephemeral loopback credentials.
-- **Enterprise Material 3 Interface**:
+- **Enterprise Material 3 Interface & Branding**:
+  - Animated launch Splash Screen (`AndroidX SplashScreen` + custom cyber-telemetry reveal) signed **Made by CEO-EG** with 1-tap access to `https://github.com/CEO-EG/AetherFlow`.
   - Pitch-Black AMOLED, Slate Dark, Crisp Light, and Material You Dynamic themes, Quick Settings Tile, Glance Home Screen Widget, Android TV D-Pad compatibility, live 60-second throughput telemetry, Clash-API socket inspector, and `AES-256-GCM` encrypted `.vpnbak` backups.
 
 ### Which APK Should I Download?

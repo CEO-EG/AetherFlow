@@ -2,7 +2,10 @@ package com.ceoeg.aetherflow.feature.diagnostics
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -26,18 +29,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Cable
 import androidx.compose.material.icons.outlined.Cancel
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.SettingsEthernet
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material.icons.outlined.WarningAmber
@@ -53,9 +61,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -85,30 +95,54 @@ import com.ceoeg.aetherflow.core.common.model.DiagnosticLogEntry
 import com.ceoeg.aetherflow.core.common.model.LanTetheringSettings
 import com.ceoeg.aetherflow.core.common.model.LogSeverity
 import com.ceoeg.aetherflow.core.common.model.SessionLoopbackAuth
+import com.ceoeg.aetherflow.core.common.model.VpnConnectionState
 import com.ceoeg.aetherflow.core.common.security.EncryptedSettingsStore
 import com.ceoeg.aetherflow.core.singbox.ClashApiInspectorClient
 import com.ceoeg.aetherflow.core.vpn.UnifiedEngineOrchestrator
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.Inet4Address
+import java.net.InetSocketAddress
 import java.net.NetworkInterface
+import java.net.Socket
 import java.security.SecureRandom
 import java.text.SimpleDateFormat
 import java.util.Collections
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+
+data class LanInterfaceEndpoint(
+    val ip: String,
+    val interfaceName: String,
+    val kindLabel: String,
+    val priority: Int,
+)
+
+data class LanListenerProbeStatus(
+    val mixedPortListening: Boolean = false,
+    val httpPortListening: Boolean = false,
+)
 
 data class DiagnosticsUiState(
     val activeConnections: List<ActiveSocketConnection> = emptyList(),
     val sessionAuth: SessionLoopbackAuth? = null,
     val logEntries: List<DiagnosticLogEntry> = emptyList(),
     val settings: AppSettings = AppSettings(),
-    val detectedLanIps: List<String> = emptyList(),
+    val isTunnelConnected: Boolean = false,
+    val detectedLanEndpoints: List<LanInterfaceEndpoint> = emptyList(),
+    val listenerProbe: LanListenerProbeStatus = LanListenerProbeStatus(),
 )
 
 @HiltViewModel
@@ -119,18 +153,33 @@ class DiagnosticsViewModel @Inject constructor(
     private val settingsStore: EncryptedSettingsStore,
 ) : ViewModel() {
 
-    val uiState: StateFlow<DiagnosticsUiState> = combine(
+    private val detectedEndpointsFlow = MutableStateFlow(discoverLocalLanInterfaces())
+    private val listenerProbeFlow = MutableStateFlow(LanListenerProbeStatus())
+
+    private val baseFlow = combine(
         orchestrator.activeConnections,
         orchestrator.activeSessionAuth,
         logger.entries,
         settingsStore.settingsFlow,
-    ) { connections, auth, logs, settings ->
+        orchestrator.connectionState,
+    ) { connections, auth, logs, settings, vpnState ->
         DiagnosticsUiState(
             activeConnections = connections,
             sessionAuth = auth,
             logEntries = logs,
             settings = settings,
-            detectedLanIps = discoverLocalLanIpv4Addresses(),
+            isTunnelConnected = vpnState is VpnConnectionState.Connected,
+        )
+    }
+
+    val uiState: StateFlow<DiagnosticsUiState> = combine(
+        baseFlow,
+        detectedEndpointsFlow,
+        listenerProbeFlow,
+    ) { base, endpoints, probe ->
+        base.copy(
+            detectedLanEndpoints = endpoints,
+            listenerProbe = probe,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -182,11 +231,27 @@ class DiagnosticsViewModel @Inject constructor(
         }
     }
 
-    fun updateLanTethering(transform: (LanTetheringSettings) -> LanTetheringSettings) {
+    fun updateLanTethering(
+        reloadIfConnected: Boolean = false,
+        transform: (LanTetheringSettings) -> LanTetheringSettings,
+    ) {
         viewModelScope.launch {
             settingsStore.update { current ->
                 current.copy(lanTethering = transform(current.lanTethering))
             }
+            if (reloadIfConnected) {
+                orchestrator.reloadActiveSessionIfConnected("LAN/Hotspot Tethering updated")
+                delay(450.milliseconds)
+            }
+            refreshLanNetworkAndListeners()
+        }
+    }
+
+    fun applyAndReloadLanTethering() {
+        viewModelScope.launch {
+            orchestrator.reloadActiveSessionIfConnected("LAN/Hotspot Tethering applied")
+            delay(500.milliseconds)
+            refreshLanNetworkAndListeners()
         }
     }
 
@@ -194,24 +259,88 @@ class DiagnosticsViewModel @Inject constructor(
         val alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789"
         val rng = SecureRandom()
         val pwd = (1..16).map { alphabet[rng.nextInt(alphabet.length)] }.joinToString("")
-        updateLanTethering { it.copy(password = pwd, requireAuth = true) }
+        updateLanTethering(reloadIfConnected = true) { it.copy(password = pwd, requireAuth = true) }
     }
 
-    private fun discoverLocalLanIpv4Addresses(): List<String> {
+    fun refreshLanNetworkAndListeners() {
+        viewModelScope.launch {
+            val lan = settingsStore.current().lanTethering
+            val (endpoints, probe) = withContext(Dispatchers.IO) {
+                val ifaces = discoverLocalLanInterfaces()
+                val mixedOpen = if (lan.enabled) isLocalTcpPortOpen(lan.socksPort) else false
+                val httpOpen = if (lan.enabled) {
+                    if (lan.httpPort == lan.socksPort) mixedOpen else isLocalTcpPortOpen(lan.httpPort)
+                } else {
+                    false
+                }
+                ifaces to LanListenerProbeStatus(
+                    mixedPortListening = mixedOpen,
+                    httpPortListening = httpOpen,
+                )
+            }
+            detectedEndpointsFlow.value = endpoints
+            listenerProbeFlow.value = probe
+        }
+    }
+
+    private fun isLocalTcpPortOpen(port: Int): Boolean {
+        if (port !in 1..65535) return false
         return runCatching {
-            val found = mutableListOf<String>()
+            Socket().use { socket ->
+                socket.connect(InetSocketAddress("127.0.0.1", port), 180)
+                true
+            }
+        }.getOrDefault(false)
+    }
+
+    private fun discoverLocalLanInterfaces(): List<LanInterfaceEndpoint> {
+        return runCatching {
+            val found = mutableListOf<LanInterfaceEndpoint>()
             val interfaces = NetworkInterface.getNetworkInterfaces() ?: return emptyList()
             for (nif in Collections.list(interfaces)) {
                 if (!nif.isUp || nif.isLoopback) continue
-                if (nif.name.startsWith("tun") || nif.name.startsWith("ppp")) continue
+                val name = nif.name.lowercase(Locale.US)
+                if (name.startsWith("tun") || name.startsWith("ppp") || name.startsWith("rmnet") ||
+                    name.startsWith("ccmni") || name.startsWith("v4-rmnet") || name.startsWith("dummy")
+                ) {
+                    continue
+                }
                 for (addr in Collections.list(nif.inetAddresses)) {
                     if (addr is Inet4Address && !addr.isLoopbackAddress && addr.isSiteLocalAddress) {
-                        found += "${addr.hostAddress} (${nif.name})"
+                        val ip = addr.hostAddress ?: continue
+                        val (kind, priority) = classifyInterface(name, ip)
+                        found += LanInterfaceEndpoint(
+                            ip = ip,
+                            interfaceName = nif.name,
+                            kindLabel = kind,
+                            priority = priority,
+                        )
                     }
                 }
             }
-            found
+            found.sortedWith(compareBy<LanInterfaceEndpoint> { it.priority }.thenBy { it.interfaceName })
         }.getOrDefault(emptyList())
+    }
+
+    private fun classifyInterface(lowerName: String, ip: String): Pair<String, Int> {
+        return when {
+            lowerName.startsWith("ap") || lowerName.startsWith("swlan") ||
+                lowerName.startsWith("softap") || lowerName == "wlan1" || lowerName == "wlan2" ||
+                ip.startsWith("192.168.43.") || ip.startsWith("192.168.137.") ->
+                "Wi-Fi Hotspot" to 0
+            lowerName.startsWith("rndis") || lowerName.startsWith("usb") || lowerName.startsWith("ncm") ||
+                ip.startsWith("192.168.42.") ->
+                "USB Tethering" to 1
+            lowerName.startsWith("bt-pan") || lowerName.startsWith("bnep") ||
+                ip.startsWith("192.168.44.") ->
+                "Bluetooth Tethering" to 2
+            lowerName.startsWith("eth") ->
+                "Ethernet LAN" to 3
+            lowerName.startsWith("wlan") ->
+                "Wi-Fi LAN" to 4
+            else ->
+                "Local Interface" to 5
+        }
     }
 }
 
@@ -637,6 +766,7 @@ private fun StructuredLogConsoleTab(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LanTetheringTab(
     state: DiagnosticsUiState,
@@ -646,6 +776,34 @@ private fun LanTetheringTab(
     val lan = state.settings.lanTethering
     var socksPortText by remember(lan.socksPort) { mutableStateOf(lan.socksPort.toString()) }
     var httpPortText by remember(lan.httpPort) { mutableStateOf(lan.httpPort.toString()) }
+    var copyFeedback by remember { mutableStateOf<String?>(null) }
+
+    // Auto-refresh Hotspot/USB/Wi-Fi IPs & live port probes every 3s while on this tab
+    LaunchedEffect(lan.enabled, lan.socksPort, lan.httpPort, state.isTunnelConnected) {
+        while (isActive) {
+            viewModel.refreshLanNetworkAndListeners()
+            delay(3.seconds)
+        }
+    }
+
+    val primaryEndpoint = state.detectedLanEndpoints.firstOrNull()
+    val primaryIp = primaryEndpoint?.ip ?: "192.168.43.1"
+    val useAuth = lan.requireAuth && lan.password.isNotBlank()
+    val portsLive = state.listenerProbe.mixedPortListening || state.listenerProbe.httpPortListening
+
+    val statusAccent = when {
+        !lan.enabled -> MaterialTheme.colorScheme.onSurfaceVariant
+        portsLive -> AetherPalette.EmeraldSignal
+        state.isTunnelConnected -> AetherPalette.WarningAmber
+        else -> AetherPalette.WarningAmber
+    }
+    val statusBadgeText = when {
+        !lan.enabled -> "DISABLED"
+        state.listenerProbe.mixedPortListening && state.listenerProbe.httpPortListening -> "LIVE • 0.0.0.0"
+        portsLive -> "PARTIAL LIVE"
+        state.isTunnelConnected -> "RELOAD NEEDED"
+        else -> "START VPN FIRST"
+    }
 
     Column(
         modifier = Modifier
@@ -654,9 +812,10 @@ private fun LanTetheringTab(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        // 1. Live Hotspot / LAN Share Status & Quick Controls
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            border = BorderStroke(1.dp, statusAccent.copy(alpha = 0.55f)),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -664,12 +823,45 @@ private fun LanTetheringTab(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(
+                            imageVector = if (portsLive) Icons.Outlined.CheckCircle else Icons.Outlined.WifiTethering,
+                            contentDescription = null,
+                            tint = statusAccent,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Text(
+                            text = "Hotspot & LAN Share",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    ProtocolBadge(
+                        text = statusBadgeText,
+                        accentColor = statusAccent,
+                    )
+                }
+
                 AetherOptionSwitchRow(
-                    title = "LAN / Hotspot Proxy Share",
-                    subtitle = "Share the encrypted VPN tunnel with laptops, consoles, or secondary devices over Wi-Fi Hotspot / USB Tethering",
+                    title = "Allow Connections from LAN / Hotspot",
+                    subtitle = "Binds Mixed (SOCKS5+HTTP) & HTTP proxy on 0.0.0.0 and bypasses LAN/hotspot subnets from TUN (Neko-ray mode)",
                     checked = lan.enabled,
                     onCheckedChange = { enabled ->
-                        viewModel.updateLanTethering { it.copy(enabled = enabled) }
+                        viewModel.updateLanTethering(reloadIfConnected = true) {
+                            it.copy(enabled = enabled, bindAddress = "0.0.0.0")
+                        }
                     },
                     icon = Icons.Outlined.WifiTethering,
                     iconTint = AetherPalette.AetherCyan,
@@ -686,7 +878,11 @@ private fun LanTetheringTab(
                                 viewModel.updateLanTethering { it.copy(socksPort = port) }
                             }
                         },
-                        label = { Text("SOCKS5 Port", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        label = { Text("Mixed / SOCKS5 Port", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        supportingText = {
+                            val label = if (state.listenerProbe.mixedPortListening) "Listening" else "SOCKS5 + HTTP"
+                            Text(label, maxLines = 1)
+                        },
                         textStyle = AetherMonoTypography.metricMedium,
                         singleLine = true,
                         modifier = Modifier.weight(1f),
@@ -699,7 +895,11 @@ private fun LanTetheringTab(
                                 viewModel.updateLanTethering { it.copy(httpPort = port) }
                             }
                         },
-                        label = { Text("HTTP Port", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        label = { Text("HTTP Proxy Port", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        supportingText = {
+                            val label = if (state.listenerProbe.httpPortListening) "Listening" else "Wi-Fi Manual Proxy"
+                            Text(label, maxLines = 1)
+                        },
                         textStyle = AetherMonoTypography.metricMedium,
                         singleLine = true,
                         modifier = Modifier.weight(1f),
@@ -707,10 +907,25 @@ private fun LanTetheringTab(
                 }
 
                 AetherOptionSwitchRow(
+                    title = "Append HTTP Proxy to VPN (Android 10+)",
+                    subtitle = "Advertises the local HTTP proxy to system/tethered apps on Android 10–16 (requires Auth OFF)",
+                    checked = lan.appendHttpProxyToVpn,
+                    onCheckedChange = { append ->
+                        viewModel.updateLanTethering(reloadIfConnected = true) {
+                            it.copy(appendHttpProxyToVpn = append)
+                        }
+                    },
+                    icon = Icons.Outlined.Hub,
+                    iconTint = AetherPalette.TelemetryCyan,
+                )
+
+                AetherOptionSwitchRow(
                     title = "Require LAN Client Credentials",
-                    subtitle = "Prevents unauthorized peers on shared Wi-Fi networks from relaying traffic",
+                    subtitle = "Keep OFF for Android/iOS/PlayStation Wi-Fi Manual Proxy; turn ON for shared public Wi-Fi",
                     checked = lan.requireAuth,
-                    onCheckedChange = { req -> viewModel.updateLanTethering { it.copy(requireAuth = req) } },
+                    onCheckedChange = { req ->
+                        viewModel.updateLanTethering(reloadIfConnected = true) { it.copy(requireAuth = req) }
+                    },
                     icon = Icons.Outlined.Lock,
                     iconTint = AetherPalette.EmeraldSignal,
                 )
@@ -741,28 +956,87 @@ private fun LanTetheringTab(
                         iconTint = AetherPalette.WarningAmber,
                     )
                 }
+
+                // Quick actions row: Open Android Hotspot Settings + Apply & Reload Tunnel
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedButton(
+                        onClick = { openAndroidTetheringSettings(context) },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)),
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = "Hotspot Settings",
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+
+                    if (state.isTunnelConnected) {
+                        Button(
+                            onClick = viewModel::applyAndReloadLanTethering,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Refresh,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = "Apply & Reload",
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
             }
         }
 
+        // 2. Detected Hotspot / LAN Addresses & Neko-ray Style Client Setup
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             border = BorderStroke(1.dp, AetherPalette.AetherCyan.copy(alpha = 0.50f)),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            val primaryIp = state.detectedLanIps.firstOrNull()?.substringBefore(" ") ?: "192.168.43.1"
             val summaryBlock = buildString {
-                appendLine("Detected Device LAN Interfaces:")
-                if (state.detectedLanIps.isEmpty()) {
-                    appendLine("  • 192.168.43.1 (Hotspot Default)")
+                appendLine("Hotspot / LAN Proxy Endpoint:")
+                appendLine("  HTTP Proxy (Phones / PC / Consoles): $primaryIp:${lan.httpPort}")
+                appendLine("  Mixed SOCKS5 + HTTP Port           : $primaryIp:${lan.socksPort}")
+                if (useAuth) {
+                    appendLine("  Auth Credentials                   : ${lan.username} / ${lan.password}")
                 } else {
-                    state.detectedLanIps.forEach { appendLine("  • $it") }
+                    appendLine("  Auth                               : None (Open to Hotspot/LAN)")
                 }
                 appendLine()
-                appendLine("SOCKS5 Proxy : $primaryIp:${lan.socksPort}")
-                appendLine("HTTP Proxy   : $primaryIp:${lan.httpPort}")
-                if (lan.requireAuth && lan.password.isNotBlank()) {
-                    appendLine("Credentials  : ${lan.username} / ${lan.password}")
+                appendLine("Detected Local Interfaces:")
+                if (state.detectedLanEndpoints.isEmpty()) {
+                    appendLine("  • 192.168.43.1 (Default Android Hotspot — turn ON Hotspot then tap Refresh)")
+                } else {
+                    state.detectedLanEndpoints.forEach { ep ->
+                        appendLine("  • ${ep.ip}  [${ep.kindLabel} • ${ep.interfaceName}]")
+                    }
                 }
             }.trimEnd()
 
@@ -775,33 +1049,144 @@ private fun LanTetheringTab(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = "Client Setup Instructions",
-                        style = MaterialTheme.typography.titleMedium,
+                    Row(
                         modifier = Modifier.weight(1f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Button(
-                        onClick = {
-                            val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-                            cm?.setPrimaryClip(ClipData.newPlainText("LAN Proxy Config", summaryBlock))
-                        },
-                        shape = RoundedCornerShape(10.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Icon(Icons.Outlined.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("Copy", fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+                        Icon(
+                            imageVector = Icons.Outlined.SettingsEthernet,
+                            contentDescription = null,
+                            tint = AetherPalette.AetherCyan,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Text(
+                            text = "Client Proxy Setup",
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    IconButton(onClick = viewModel::refreshLanNetworkAndListeners) {
+                        Icon(
+                            imageVector = Icons.Outlined.Refresh,
+                            contentDescription = "Refresh Hotspot IPs",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
                     }
                 }
+
+                // Highlighted Primary Host & Port Readout
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(
+                            text = "PROXY HOSTNAME (${primaryEndpoint?.kindLabel ?: "Hotspot Default"})",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = primaryIp,
+                            style = AetherMonoTypography.metricMedium,
+                            color = AetherPalette.AetherCyan,
+                        )
+                        Text(
+                            text = "HTTP Port: ${lan.httpPort}   •   Mixed/SOCKS5 Port: ${lan.socksPort}",
+                            style = AetherMonoTypography.codeSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                }
+
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    AetherActionChip(
+                        onClick = {
+                            copyLanText(context, "HTTP Proxy", "$primaryIp:${lan.httpPort}")
+                            copyFeedback = "Copied HTTP Proxy: $primaryIp:${lan.httpPort}"
+                        },
+                        label = "Copy HTTP ($primaryIp:${lan.httpPort})",
+                        icon = Icons.Outlined.ContentCopy,
+                        iconTint = AetherPalette.EmeraldSignal,
+                    )
+                    AetherActionChip(
+                        onClick = {
+                            copyLanText(context, "Mixed SOCKS5 Proxy", "$primaryIp:${lan.socksPort}")
+                            copyFeedback = "Copied Mixed/SOCKS5: $primaryIp:${lan.socksPort}"
+                        },
+                        label = "Copy Mixed/SOCKS5 (${lan.socksPort})",
+                        icon = Icons.Outlined.ContentCopy,
+                        iconTint = AetherPalette.AetherCyan,
+                    )
+                    AetherActionChip(
+                        onClick = {
+                            copyLanText(context, "LAN Proxy Config", summaryBlock)
+                            copyFeedback = "Copied full hotspot setup details."
+                        },
+                        label = "Copy All Details",
+                        icon = Icons.Outlined.ContentCopy,
+                        iconTint = AetherPalette.TelemetryCyan,
+                    )
+                }
+
+                if (copyFeedback != null) {
+                    Text(
+                        text = copyFeedback.orEmpty(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = AetherPalette.EmeraldSignal,
+                    )
+                }
+
                 Text(
                     text = summaryBlock,
                     style = AetherMonoTypography.codeSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                Text(
+                    text = "How to connect (Neko-ray / v2rayNG method):\n" +
+                        "1. Turn ON Mobile Hotspot (or USB Tethering) on this phone.\n" +
+                        "2. Enable 'Allow Connections from LAN / Hotspot' above and connect AetherFlow VPN.\n" +
+                        "3. On the other phone/laptop, open Wi-Fi settings -> Proxy -> Manual -> enter Host = $primaryIp and Port = ${lan.httpPort} (or ${lan.socksPort} for SOCKS5/HTTP).\n" +
+                        "Tip (Android 13–16): If your device Hotspot settings show 'Allow clients to use VPNs', turn it ON too.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
+    }
+}
+
+private fun copyLanText(context: Context, label: String, text: String) {
+    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+    cm?.setPrimaryClip(ClipData.newPlainText(label, text))
+}
+
+private fun openAndroidTetheringSettings(context: Context) {
+    val intents = listOf(
+        Intent().setComponent(
+            ComponentName("com.android.settings", "com.android.settings.TetherSettings")
+        ),
+        Intent(Settings.ACTION_WIRELESS_SETTINGS),
+        Intent(Settings.ACTION_WIFI_SETTINGS),
+    )
+    for (intent in intents) {
+        val opened = runCatching {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            true
+        }.getOrDefault(false)
+        if (opened) break
     }
 }

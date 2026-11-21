@@ -210,4 +210,42 @@ class XrayConfigBuilderTest {
         assertEquals("partners.playstation.net", pinnedTls["serverName"]?.jsonPrimitive?.content)
         assertEquals(sampleSha256, pinnedTls["pinnedPeerCertSha256"]?.jsonPrimitive?.content)
     }
+
+    @Test
+    fun `emits Neko-ray compatible 0_0_0_0 mixed and HTTP LAN tethering inbounds when enabled`() {
+        val sessionAuth = authGenerator.generateSessionAuth()
+        val settings = AppSettings(
+            lanTethering = com.ceoeg.aetherflow.core.common.model.LanTetheringSettings(
+                enabled = true,
+                bindAddress = "0.0.0.0",
+                socksPort = 10810,
+                httpPort = 10811,
+                requireAuth = false,
+            ),
+        )
+        val profile = TunnelProfile(
+            name = "Hotspot Share Node",
+            protocol = ProtocolType.VLESS,
+            serverAddress = "vpn.aether.example",
+            serverPort = 443,
+            uuid = "11111111-2222-3333-4444-555555555555",
+            tlsReality = TlsRealityConfig(security = SecurityMode.TLS, sni = "vpn.aether.example"),
+        )
+
+        val rawConfig = builder.buildConfig(profile, settings, sessionAuth)
+        val inbounds = json.parseToJsonElement(rawConfig).jsonObject["inbounds"]!!.jsonArray.map { it.jsonObject }
+
+        val lanMixed = inbounds.firstOrNull { it["tag"]?.jsonPrimitive?.content == "lan-mixed-in" }
+        assertNotNull(lanMixed)
+        assertEquals("0.0.0.0", lanMixed!!["listen"]?.jsonPrimitive?.content)
+        assertEquals(10810, lanMixed["port"]?.jsonPrimitive?.content?.toInt())
+        assertEquals("mixed", lanMixed["protocol"]?.jsonPrimitive?.content)
+        assertEquals("noauth", lanMixed["settings"]!!.jsonObject["auth"]?.jsonPrimitive?.content)
+
+        val lanHttp = inbounds.firstOrNull { it["tag"]?.jsonPrimitive?.content == "lan-http-in" }
+        assertNotNull(lanHttp)
+        assertEquals("0.0.0.0", lanHttp!!["listen"]?.jsonPrimitive?.content)
+        assertEquals(10811, lanHttp["port"]?.jsonPrimitive?.content?.toInt())
+        assertEquals("http", lanHttp["protocol"]?.jsonPrimitive?.content)
+    }
 }

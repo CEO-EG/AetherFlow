@@ -124,7 +124,8 @@ data class LanTetheringSettings(
     val bindAddress: String = "0.0.0.0",
     val socksPort: Int = 10810,
     val httpPort: Int = 10811,
-    val requireAuth: Boolean = true,
+    val requireAuth: Boolean = false,
+    val appendHttpProxyToVpn: Boolean = false,
     val username: String = "aether",
     val password: String = "",
 )

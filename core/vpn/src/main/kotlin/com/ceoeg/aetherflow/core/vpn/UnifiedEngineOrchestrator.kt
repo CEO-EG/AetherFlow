@@ -95,6 +95,7 @@ class UnifiedEngineOrchestrator @Inject constructor(
     private var healthWatchdogJob: Job? = null
     private var activeEngine: EngineBackend? = null
     private var activeProfile: TunnelProfile? = null
+    private var activeTunFd: Int = 0
     private val failedProfileIdsInSession = HashSet<String>()
 
     /** Checks whether `VpnService.prepare(context)` user consent is required before connecting. */
@@ -131,6 +132,31 @@ class UnifiedEngineOrchestrator @Inject constructor(
             }
             runCatching { appContext.startService(intent) }
             stopSessionInternal()
+        }
+    }
+
+    /**
+     * Hot-reloads the running tunnel when LAN/Hotspot Tethering or routing settings change
+     * so `0.0.0.0` proxy ports and TUN LAN-bypass routes take effect immediately without manual reconnect.
+     */
+    fun reloadActiveSessionIfConnected(reason: String) {
+        val currentState = connectionState.value as? VpnConnectionState.Connected ?: return
+        val profileId = currentState.profileId
+        scope.launch {
+            logger.info("Orchestrator", "Reloading active tunnel ($reason)...")
+            val settings = settingsStore.current()
+            if (settings.routingMode == RoutingMode.LOCAL_PROXY_ONLY ||
+                settings.tunSettings.backend == TunBackendMode.PROXY_ONLY ||
+                activeTunFd <= 0
+            ) {
+                startSessionInternal(tunFd = activeTunFd, explicitProfileId = profileId)
+            } else {
+                val intent = Intent(appContext, AetherVpnService::class.java).apply {
+                    action = AetherVpnService.ACTION_CONNECT
+                    putExtra(AetherVpnService.EXTRA_PROFILE_ID, profileId)
+                }
+                ContextCompat.startForegroundService(appContext, intent)
+            }
         }
     }
 
@@ -215,6 +241,7 @@ class UnifiedEngineOrchestrator @Inject constructor(
         _latestTraffic.value = TrafficSnapshot()
         activeProfile = null
         activeEngine = null
+        activeTunFd = 0
         stateMachine.onDisconnected()
         logger.info("Orchestrator", "Tunnel disconnected cleanly.")
     }
@@ -334,6 +361,15 @@ class UnifiedEngineOrchestrator @Inject constructor(
             "Orchestrator",
             "Allocated ephemeral loopback SOCKS5=127.0.0.1:${sessionAuth.socksPort} for engine=${engine.displayName}"
         )
+        val lan = settings.lanTethering
+        if (lan.enabled) {
+            val listenAddr = lan.bindAddress.ifBlank { "0.0.0.0" }
+            val authNote = if (lan.requireAuth && lan.password.isNotBlank()) "password auth" else "noauth"
+            logger.info(
+                "LanTethering",
+                "Hotspot/LAN proxy active on $listenAddr:${lan.socksPort} (Mixed SOCKS5+HTTP) & $listenAddr:${lan.httpPort} (HTTP) [$authNote]"
+            )
+        }
 
         val effectiveTunMode = if (settings.routingMode == RoutingMode.LOCAL_PROXY_ONLY || tunFd <= 0) {
             TunBackendMode.PROXY_ONLY
@@ -400,6 +436,7 @@ class UnifiedEngineOrchestrator @Inject constructor(
 
         activeEngine = engine
         activeProfile = profile
+        activeTunFd = tunFd
     }
 
     private fun stopEnginesOnly() {
